@@ -71,8 +71,9 @@ footer a{color:var(--c1);margin-right:14px}
 .sticky a{flex:1;justify-content:center;padding:13px}
 @media (max-width:720px){.about{grid-template-columns:1fr}.sticky{display:flex}body{padding-bottom:70px}.nav .call{display:none}}
 </style>
+<link rel="stylesheet" href="../../assets/site.css">
 </head>
-<body>
+<body data-gewerk="installateur" data-email="office@installationen-huber.at" data-tel="+43732000000">
 <div class="draft">Unverbindlicher Entwurf von <a href="../../">Lorenz Höller Webdesign</a> · Bilder sind KI-Beispielbilder und werden durch Ihre Fotos ersetzt</div>
 <header><div class="wrap nav">
   <a class="logo" href="#"><i>H</i>Installationen Huber</a>
@@ -104,6 +105,8 @@ footer a{color:var(--c1);margin-right:14px}
   </div>
 </div></section>
 
+<section id="showroom" data-showroom="installateur"></section>
+
 <div class="notdienst"><div class="wrap">
   <div><strong style="font-size:1.2rem">Notfall? Rohrbruch, Heizung kalt?</strong><br>Rufen Sie an, wir sind in Altenberg und Umgebung schnell vor Ort.</div>
   <a href="tel:+43664000000">Notdienst 0664 / 000 000</a>
@@ -122,6 +125,10 @@ footer a{color:var(--c1);margin-right:14px}
   </div>
 </div></section>
 
+<section id="rechner" class="rechner" data-rechner></section>
+
+<section id="ablauf" class="ablauf" data-ablauf></section>
+
 <section id="ueber"><div class="wrap">
   <div class="about">
     <div>
@@ -137,6 +144,8 @@ footer a{color:var(--c1);margin-right:14px}
     <img class="about-img" src="img/haende.jpg" alt="Installateur bei der Arbeit" loading="lazy">
   </div>
 </div></section>
+
+<section id="termin" class="termin" data-termin></section>
 
 <section id="kontakt" class="kontakt"><div class="wrap">
   <h2>Kontakt</h2>
@@ -156,5 +165,7 @@ footer a{color:var(--c1);margin-right:14px}
 </div></footer>
 
 <div class="sticky"><a class="btn p" href="tel:+43732000000">Anrufen</a><a class="btn w" href="https://wa.me/43664000000">WhatsApp</a></div>
+<script src="../../assets/showroom.js" defer></script>
+<script src="../../assets/site.js" defer></script>
 </body>
 </html>
