@@ -18,7 +18,7 @@ header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--c2);font-weight:800;font-size:1.05rem}
 .logo i{width:38px;height:38px;border-radius:9px;background:var(--c1);display:grid;place-items:center;color:#fff;font-style:normal;font-weight:800}
 .call{background:var(--acc);color:#fff;text-decoration:none;padding:11px 16px;border-radius:9px;font-weight:700;white-space:nowrap}
-.hero{position:relative;color:#fff;padding:86px 0 70px;background:linear-gradient(120deg,var(--c2),var(--c1) 55%,#1b6a99);overflow:hidden}
+.hero{position:relative;color:#fff;padding:86px 0 70px;background:linear-gradient(120deg,rgba(10,42,66,.94),rgba(15,61,94,.86) 55%,rgba(27,106,153,.55)),url(img/hero.jpg) center/cover no-repeat;overflow:hidden}
 .hero::after{content:"";position:absolute;inset:auto -10% -40% auto;width:60%;height:120%;background:radial-gradient(closest-side,rgba(255,255,255,.12),transparent)}
 .hero .wrap{position:relative}
 .kicker{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:5px 12px;font-size:.85rem;margin-bottom:14px}
@@ -42,7 +42,11 @@ h2{font-size:1.8rem;margin:0 0 8px;color:var(--c2)}
 .notdienst{background:var(--acc);color:#fff;padding:26px 0}
 .notdienst .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .notdienst a{background:#fff;color:#8a4408;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:9px}
-.photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.photos figure{margin:0;border-radius:12px;overflow:hidden;background:#fff;border:1px solid var(--line)}
+.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.photos figcaption{padding:10px 12px;font-size:.9rem;color:var(--mute)}
+.about-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;display:block}
 .ph{aspect-ratio:4/3;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:600;text-align:center;padding:10px;background:linear-gradient(160deg,#2b5f85,#0f3d5e)}
 .ph:nth-child(2){background:linear-gradient(160deg,#c56410,#8a4408)}
 .ph:nth-child(3){background:linear-gradient(160deg,#4b6478,#243442)}
@@ -69,7 +73,7 @@ footer a{color:var(--c1);margin-right:14px}
 </style>
 </head>
 <body>
-<div class="draft">Unverbindlicher Entwurf von <a href="../../">Lorenz Höller Webdesign</a> · Bilder sind Platzhalter und werden durch Ihre Fotos ersetzt</div>
+<div class="draft">Unverbindlicher Entwurf von <a href="../../">Lorenz Höller Webdesign</a> · Bilder sind KI-Beispielbilder und werden durch Ihre Fotos ersetzt</div>
 <header><div class="wrap nav">
   <a class="logo" href="#"><i>H</i>Installationen Huber</a>
   <a class="call" href="tel:+43732000000">Anrufen: 0732 / 000 000</a>
@@ -109,12 +113,12 @@ footer a{color:var(--c1);margin-right:14px}
   <h2>Unsere Arbeiten</h2>
   <p class="lead">Ein paar Projekte aus der Region.</p>
   <div class="photos">
-    <div class="ph">Komplettbad<br>Altenberg</div>
-    <div class="ph">Wärmepumpe<br>Einfamilienhaus Gallneukirchen</div>
-    <div class="ph">Pelletsheizung<br>Bauernhof Hellmonsödt</div>
-    <div class="ph">Barrierefreie Dusche<br>Linz-Urfahr</div>
-    <div class="ph">Solaranlage<br>Altenberg</div>
-    <div class="ph">Unser Team<br>vor der Werkstatt</div>
+    <figure><img src="img/bad.jpg" alt="Renoviertes Bad mit Walk-in-Dusche" loading="lazy"><figcaption>Komplettbad, Altenberg</figcaption></figure>
+    <figure><img src="img/waermepumpe.jpg" alt="Wärmepumpe neben Einfamilienhaus" loading="lazy"><figcaption>Wärmepumpe, Einfamilienhaus Gallneukirchen</figcaption></figure>
+    <figure><img src="img/pellets.jpg" alt="Pelletsheizung im Heizraum" loading="lazy"><figcaption>Pelletsheizung, Bauernhof Hellmonsödt</figcaption></figure>
+    <figure><img src="img/dusche.jpg" alt="Barrierefreie bodengleiche Dusche" loading="lazy"><figcaption>Barrierefreie Dusche, Linz-Urfahr</figcaption></figure>
+    <figure><img src="img/solar.jpg" alt="Solarkollektoren auf Ziegeldach" loading="lazy"><figcaption>Solaranlage, Altenberg</figcaption></figure>
+    <figure><img src="img/team.jpg" alt="Team beim Beladen des Firmenwagens" loading="lazy"><figcaption>Unser Team vor der Werkstatt</figcaption></figure>
   </div>
 </div></section>
 
@@ -130,7 +134,7 @@ footer a{color:var(--c1);margin-right:14px}
         <div><b>Aus der Region</b>Kurze Wege, schnell vor Ort.</div>
       </div>
     </div>
-    <div class="ph">Michael Huber<br>Installateurmeister</div>
+    <img class="about-img" src="img/haende.jpg" alt="Installateur bei der Arbeit" loading="lazy">
   </div>
 </div></section>
 
