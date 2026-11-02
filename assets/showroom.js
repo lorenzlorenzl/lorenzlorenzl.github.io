@@ -25,9 +25,9 @@
     root.classList.add('sr');
     root.innerHTML =
       '<div class="wrap">' +
-      '<span class="kicker2">Zum Anklicken</span>' +
-      '<h2>' + esc(scene.title) + '</h2>' +
-      '<p class="lead">' + esc(scene.lead) + '</p>' +
+      '<span class="kicker2">' + esc(root.dataset.kicker || 'Zum Anklicken') + '</span>' +
+      '<h2>' + esc(root.dataset.title || scene.title) + '</h2>' +
+      '<p class="lead">' + esc(root.dataset.lead || scene.lead) + '</p>' +
       '<div class="sr-tabs" role="tablist"></div>' +
       '<div class="sr-body">' +
       '<div class="sr-stagecol"><div class="sr-toolbar"></div><div class="sr-stage-wrap"><div class="sr-hint">Tippen Sie auf die leuchtenden Punkte</div></div></div>' +
@@ -103,6 +103,7 @@
       setTimeout(function () { old.remove(); stage.classList.remove('in-' + tr); }, 850);
     }
     this.renderToolbar(tab);
+    var hint = this.wrap.querySelector('.sr-hint'); if (hint) hint.textContent = tab.hint || 'Tippen Sie auf die leuchtenden Punkte';
     if (tab.init) tab.init(svg, this.state, this);
     this.update();
   };
@@ -706,6 +707,7 @@
       },
       {
         label: 'Vorher / Nachher',
+        hint: 'Ziehen Sie den Griff nach links und rechts',
         initial: { split: 50 },
         toolbar: [{ type: 'range', key: 'split', label: 'Vorher / Nachher', min: 0, max: 100, unit: ' %' }],
         drag: function (s, x) { s.split = Math.max(0, Math.min(100, Math.round(x / 10))); },

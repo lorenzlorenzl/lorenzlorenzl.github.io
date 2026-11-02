@@ -252,3 +252,10 @@ body::before { content: ""; position: fixed; inset: 0; background: var(--c2); z-
 .sr-tourlabel.on { opacity: 1; transform: translate(-50%, 0); }
 .btn, .call, .sr-tab { transition: transform .25s var(--ease), background .3s, color .3s; }
 @media (prefers-reduced-motion: reduce) { body::before { display: none; } .hero h1.words .w { opacity: 1; transform: none; animation: none; } }
+
+/* Scroll-Hinweis im Hero, Signatur im Fuß */
+.scrollcue { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: 26px; height: 42px; border: 2px solid rgba(255, 255, 255, .55); border-radius: 14px; z-index: 1; }
+.scrollcue i { position: absolute; left: 50%; top: 7px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: #fff; animation: cue 1.8s ease-in-out infinite; }
+@keyframes cue { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(16px); opacity: 0; } 100% { opacity: 0; } }
+@media (max-width: 720px) { .scrollcue { display: none; } }
+footer .credit { display: block; margin-top: 10px; font-size: .85rem; color: var(--mute); }
