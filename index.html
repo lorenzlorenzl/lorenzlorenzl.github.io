@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="de-AT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lorenz Höller Webdesign – Websites für Handwerksbetriebe in Linz</title>
+<meta name="description" content="Ihre Handwerker-Website in 5 Werktagen. Festpreis 490 €, inklusive Impressum, Datenschutz, Anruf-Button und Google-Eintrag. Linz und Oberösterreich.">
+<style>
+:root{--blue:#123a63;--blue-d:#0b2744;--orange:#e8741c;--bg:#f6f7f9;--ink:#1c2430;--mute:#5b6675;--line:#dfe3e8;--white:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
+a{color:var(--blue)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{background:var(--white);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{font-weight:700;text-decoration:none;color:var(--blue);font-size:1.05rem}
+.brand span{color:var(--orange)}
+.nav a.cta{background:var(--orange);color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600}
+.hero{background:linear-gradient(135deg,var(--blue-d),var(--blue) 60%,#1f5a8f);color:#fff;padding:72px 0 64px}
+.hero h1{font-size:clamp(1.9rem,4.5vw,3rem);line-height:1.15;margin:0 0 16px;max-width:720px}
+.hero p{font-size:1.15rem;max-width:620px;margin:0 0 28px;color:#dbe6f3}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;padding:14px 22px;border-radius:10px;font-weight:600;text-decoration:none}
+.btn.p{background:var(--orange);color:#fff}
+.btn.s{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:40px}
+.fact{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:14px 16px}
+.fact b{display:block;font-size:1.5rem}
+section{padding:64px 0}
+section h2{font-size:1.8rem;margin:0 0 10px;color:var(--blue-d)}
+.lead{color:var(--mute);margin:0 0 32px;max-width:640px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+.card p{margin:0;color:var(--mute)}
+.steps{counter-reset:s}
+.step{display:flex;gap:16px;align-items:flex-start;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:12px}
+.step::before{counter-increment:s;content:counter(s);flex:0 0 40px;height:40px;border-radius:50%;background:var(--orange);color:#fff;font-weight:700;display:grid;place-items:center}
+.step h3{margin:0 0 4px}.step p{margin:0;color:var(--mute)}
+.price{background:var(--white);border:2px solid var(--blue);border-radius:18px;padding:32px;display:grid;gap:24px;grid-template-columns:1fr 1fr}
+.price .big{font-size:3rem;font-weight:800;color:var(--blue-d);line-height:1}
+.price ul{margin:12px 0 0;padding-left:18px;color:var(--mute)}
+.badge{display:inline-block;background:#fdeedd;color:#9a4a08;font-weight:600;border-radius:999px;padding:4px 12px;font-size:.85rem;margin-bottom:10px}
+.about{display:grid;grid-template-columns:1fr 2fr;gap:28px;align-items:start}
+.portrait{aspect-ratio:1;border-radius:16px;background:linear-gradient(160deg,#dfe6ef,#b9c7d8);display:grid;place-items:center;color:#4a5b70;font-weight:600;text-align:center;padding:12px}
+.contact{background:var(--blue-d);color:#fff}
+.contact h2{color:#fff}
+.contact .lead{color:#c9d7e6}
+.contact .grid a{color:#fff}
+.contact .card{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.contact .card p{color:#dbe6f3}
+footer{padding:28px 0;color:var(--mute);font-size:.9rem;border-top:1px solid var(--line)}
+footer a{margin-right:16px}
+@media (max-width:720px){.price,.about{grid-template-columns:1fr}.nav a.cta{display:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <a class="brand" href="#">Lorenz Höller <span>Webdesign</span></a>
+  <a class="cta" href="#kontakt">Kostenlosen Entwurf anfragen</a>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <h1>Ihre Handwerker-Website. In 5 Werktagen online, zum Festpreis.</h1>
+  <p>Für Installateure, Elektriker, Tischler, Maler und alle anderen Betriebe in Linz und Oberösterreich, die am Handy gefunden werden wollen.</p>
+  <div class="btns">
+    <a class="btn p" href="#kontakt">Kostenlosen Entwurf anfragen</a>
+    <a class="btn s" href="entwuerfe/musterbetrieb/">Beispiel ansehen</a>
+  </div>
+  <div class="facts">
+    <div class="fact"><b>490 €</b>Festpreis, alles drin</div>
+    <div class="fact"><b>5 Tage</b>bis die Seite online ist</div>
+    <div class="fact"><b>0 €</b>laufende Kosten (Pflege optional)</div>
+    <div class="fact"><b>10 Min.</b>Ihr Aufwand: Fotos und Öffnungszeiten</div>
+  </div>
+</div></div>
+
+<section id="fuer-wen"><div class="wrap">
+  <h2>Für wen das ist</h2>
+  <p class="lead">Für Betriebe, die gute Arbeit machen, aber im Internet nicht zu finden sind oder deren Seite am Handy nicht funktioniert.</p>
+  <div class="grid">
+    <div class="card"><h3>Noch keine Website</h3><p>Kunden, die Sie empfohlen bekommen, googeln Sie vorher. Finden sie nichts, rufen sie den nächsten an.</p></div>
+    <div class="card"><h3>Alte Seite</h3><p>Seite von 2012, am Handy winzig, Telefonnummer nicht anklickbar. Das kostet jeden Tag Anfragen.</p></div>
+    <div class="card"><h3>Nur Facebook</h3><p>Facebook sehen nur Leute mit Facebook. Google sieht jeder. Ihre Seite verlinkt auf Facebook, das bleibt.</p></div>
+  </div>
+</div></section>
+
+<section id="leistung" style="background:var(--white)"><div class="wrap">
+  <h2>Was Sie bekommen</h2>
+  <p class="lead">Eine Seite, die alles zeigt, was ein Kunde wissen will, bevor er anruft. Nicht mehr, nicht weniger.</p>
+  <div class="grid">
+    <div class="card"><h3>Leistungen und Fotos</h3><p>Was Sie machen, für wen, mit Ihren echten Bildern aus der Werkstatt und von Baustellen.</p></div>
+    <div class="card"><h3>Anruf- und WhatsApp-Button</h3><p>Ein Tipp am Handy, und der Kunde hat Sie am Telefon. Notdienst-Nummer sichtbar, wenn Sie wollen.</p></div>
+    <div class="card"><h3>Google-Eintrag verknüpft</h3><p>Ihr Google-Unternehmensprofil zeigt auf die Seite. Bewertungen, Öffnungszeiten und Anfahrt passen zusammen.</p></div>
+    <div class="card"><h3>Impressum und Datenschutz</h3><p>Nach österreichischem Recht (ECG, DSGVO). Keine Cookies, kein Tracking, keine Abmahn-Angst.</p></div>
+    <div class="card"><h3>Eigene .at-Adresse</h3><p>Zum Beispiel installateur-huber.at. Die Domain läuft auf Ihren Namen, sie gehört Ihnen.</p></div>
+    <div class="card"><h3>Schnell und mobil</h3><p>Lädt in unter einer Sekunde, funktioniert auf jedem Handy. Keine Baukasten-Werbung, kein Abo-Zwang.</p></div>
+  </div>
+</div></section>
+
+<section id="ablauf"><div class="wrap">
+  <h2>So läuft es ab</h2>
+  <p class="lead">Sie brauchen keine Technik-Kenntnisse und kaum Zeit.</p>
+  <div class="steps">
+    <div class="step"><div><h3>Kostenloser Entwurf</h3><p>Sie melden sich, ich baue Ihnen unverbindlich einen ersten Entwurf mit Ihren Daten. Sie sehen, was Sie bekommen, bevor Sie etwas zahlen.</p></div></div>
+    <div class="step"><div><h3>Fotos und Öffnungszeiten</h3><p>Sie schicken mir 5 bis 10 Fotos per WhatsApp und sagen mir Ihre Leistungen und Zeiten. Zehn Minuten.</p></div></div>
+    <div class="step"><div><h3>In 5 Werktagen online</h3><p>Ich baue die Seite fertig, richte Domain und Google-Verknüpfung ein. Eine Korrekturrunde ist inklusive. Dann ist sie online.</p></div></div>
+  </div>
+</div></section>
+
+<section id="preis" style="background:var(--white)"><div class="wrap">
+  <h2>Preis</h2>
+  <p class="lead">Ein Preis, keine Überraschungen.</p>
+  <div class="price">
+    <div>
+      <span class="badge">Einführungspreis für die ersten 5 Betriebe</span>
+      <div class="big">490 €</div>
+      <p style="color:var(--mute);margin:8px 0 0">einmalig, danach 890 €. Kein Abo, keine laufenden Kosten.<br>50 % bei Auftrag, 50 % wenn die Seite online ist und Ihnen gefällt.</p>
+    </div>
+    <div>
+      <h3 style="margin:0">Optional: Pflege um 29 €/Monat</h3>
+      <ul>
+        <li>Hosting und Technik</li>
+        <li>Texte, Preise, Fotos ändern, so oft Sie wollen</li>
+        <li>Google-Profil aktuell halten</li>
+        <li>Monatlich kündbar</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section id="ueber"><div class="wrap">
+  <h2>Über mich</h2>
+  <div class="about">
+    <div class="portrait">Foto von Lorenz<br>(folgt)</div>
+    <div>
+      <p>Ich bin Lorenz Höller aus [ORT BEI LINZ]. Ich baue Websites für Handwerksbetriebe in Oberösterreich, weil ich gesehen habe, wie viele gute Betriebe im Internet nicht zu finden sind.</p>
+      <p>Ich arbeite mit modernen Werkzeugen und KI-Unterstützung. Deshalb kann ich eine saubere Seite in fünf Tagen und zum Festpreis anbieten, statt wochenlang und nach Stunden abzurechnen. Sie erreichen mich direkt, ohne Agentur-Umwege, und ich komme gerne in Ihrer Werkstatt vorbei.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="kontakt" class="contact"><div class="wrap">
+  <h2>Kostenlosen Entwurf anfragen</h2>
+  <p class="lead">Schreiben Sie mir Ihren Betriebsnamen und Ihren Ort. Sie bekommen innerhalb von zwei Werktagen einen Entwurf, unverbindlich.</p>
+  <div class="grid">
+    <div class="card"><h3>E-Mail</h3><p><a href="mailto:l.hoeller.webdesign@gmail.com">l.hoeller.webdesign@gmail.com</a></p></div>
+    <div class="card"><h3>Telefon / WhatsApp</h3><p><a href="tel:[TELEFON]">[TELEFON]</a></p></div>
+    <div class="card"><h3>Vor Ort</h3><p>Linz, Linz-Land, Urfahr-Umgebung, Almtal. Ich komme vorbei.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a>
+  <span>© 2026 Lorenz Höller Webdesign</span>
+</div></footer>
+</body>
+</html>
