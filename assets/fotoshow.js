@@ -97,13 +97,39 @@
     var lit = el('div', 'fx-inside-lit'); inside.appendChild(lit);
     slice.style.cssText = pos + 'background-image:url("' + st.src + '");background-size:' + (10000 / r[2]) + '% ' + (10000 / r[3]) + '%;background-position:' + (r[2] >= 100 ? 0 : r[0] / (100 - r[2]) * 100) + '% ' + (r[3] >= 100 ? 0 : r[1] / (100 - r[3]) * 100) + '%;' + (c.delay ? 'transition-delay:' + c.delay + 'ms;' : '');
     if (c.delay) inside.style.transitionDelay = c.delay + 'ms';
-    if (c.shape) { /* Umriss im Bild (Prozent) auf das Stück umrechnen, z. B. schräges Dachfenster */
+    if (c.shape) { /* Umriss im Bild (Prozent) auf das Stück umrechnen, z. B. schräges Dachfenster oder Ladenfront in Perspektive */
       var cp = 'polygon(' + c.shape.map(function (pt) { return ((pt[0] - r[0]) / r[2] * 100).toFixed(2) + '% ' + ((pt[1] - r[1]) / r[3] * 100).toFixed(2) + '%'; }).join(',') + ')';
       slice.style.clipPath = cp; inside.style.clipPath = cp;
     }
-    if (c.inside || c.insideStyle) st.html.appendChild(inside); st.html.appendChild(slice);
+    if (c.inside || c.insideStyle) st.html.appendChild(inside);
+    var faces = null;
+    if (c.pull) { /* Lade: die Front fährt entlang der Möbeltiefe heraus (pull = [dx, dy, Maßstab] in Bildprozent). Seitenwand und Inhalt von oben werden als Flächen zwischen alter und neuer Kante sichtbar. */
+      var q = c.shape || [[r[0], r[1]], [r[0] + r[2], r[1]], [r[0] + r[2], r[1] + r[3]], [r[0], r[1] + r[3]]];
+      var cx = r[0] + r[2] / 2, cy = r[1] + r[3] / 2, k = c.pull[2] || 1;
+      var q2 = q.map(function (p) { return [cx + (p[0] - cx) * k + c.pull[0], cy + (p[1] - cy) * k + c.pull[1]]; });
+      var P = function (pts) { return 'polygon(' + pts.map(function (p) { return p[0].toFixed(2) + '% ' + p[1].toFixed(2) + '%'; }).join(',') + ')'; };
+      var wood = c.wood || ['#c69a69', '#a97d4e'];
+      faces = [['top', 0, 1], ['right', 1, 2], ['left', 3, 0]].map(function (f) {
+        var d = el('div', 'fx-face fx-face-' + f[0]);
+        if (f[0] !== 'top') d.style.background = 'linear-gradient(90deg,' + (f[0] === 'right' ? wood[1] + ',' + wood[0] : wood[0] + ',' + wood[1]) + ')';
+        d._closed = P([q[f[1]], q[f[2]], q[f[2]], q[f[1]]]); d._open = P([q[f[1]], q[f[2]], q2[f[2]], q2[f[1]]]);
+        d.style.clipPath = d._closed;
+        if (f[0] === 'top' && c.contents) d.style.background = c.contents; /* Inhalt der Lade von oben, als Streifen (CSS-Verlauf) */
+        if (c.delay) d.style.transitionDelay = c.delay + 'ms';
+        st.html.appendChild(d); return d;
+      });
+      slice.style.transformOrigin = '50% 50%';
+    }
+    st.html.appendChild(slice);
     return { update: function (s) {
-      var on = !!s[c.key]; slice.classList.toggle('open', on); inside.classList.toggle('open', on);
+      var on = c.key ? !!s[c.key] : false; slice.classList.toggle('open', on); inside.classList.toggle('open', on);
+      if (c.pull) { slice.style.transform = on ? 'translate(' + (c.pull[0] / r[2] * 100).toFixed(2) + '%,' + (c.pull[1] / r[3] * 100).toFixed(2) + '%) scale(' + (c.pull[2] || 1) + ')' : ''; faces.forEach(function (d) { d.style.clipPath = on ? d._open : d._closed; }); }
+      if (c.mode === 'window') { /* Dreh-Kipp: gekippt neigt sich der Flügel oben in den Raum, gedreht schwingt er um das Band (hinge: left oder right) */
+        var tilt = !!(c.tiltKey && s[c.tiltKey]), right = c.hinge === 'right';
+        slice.style.transformOrigin = on ? (right ? '100% 50%' : '0% 50%') : '50% 100%';
+        slice.style.transform = on ? 'rotateY(' + (right ? 58 : -58) + 'deg)' : tilt ? 'rotateX(-18deg)' : '';
+        slice.classList.toggle('open', on || tilt);
+      }
       if (c.lightKey) lit.classList.toggle('on', !!s[c.lightKey]);
       if (c.mode === 'spin') { var k = c.speedKey ? clamp(Number(s[c.speedKey]) / 12, .2, 1) : 1; slice.style.setProperty('--spd', (2.6 - 2.2 * k).toFixed(2) + 's'); }
     } };
@@ -340,6 +366,8 @@
 
   /* ---------------- Inhalte für geöffnete Laden und Schränke ---------------- */
   var INSIDE = {
+    topTowels: 'repeating-linear-gradient(90deg,#e6ebef 0 7%,#5a4a3a 7% 7.5%,#cbd7df 7.5% 14.5%,#5a4a3a 14.5% 15%,#ebe5db 15% 22%,#5a4a3a 22% 22.5%)',
+    topBath: 'repeating-linear-gradient(90deg,#dde3e6 0 5%,#5a4a3a 5% 5.6%,#f1e9dc 5.6% 9.6%,#5a4a3a 9.6% 10.2%,#b7c6d2 10.2% 13.2%,#5a4a3a 13.2% 13.8%,#e2dbd0 13.8% 19.8%,#5a4a3a 19.8% 20.4%)',
     towels: '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><rect x="4" y="12" width="26" height="22" rx="4" fill="#d9e3ea"/><rect x="33" y="10" width="26" height="24" rx="4" fill="#9fb7c9"/><rect x="62" y="12" width="26" height="22" rx="4" fill="#e8dfd0"/><path d="M4 22h26M33 20h26M62 22h26" stroke="#ffffff66" stroke-width="2"/></svg>',
     bath: '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><rect x="5" y="8" width="18" height="26" rx="3" fill="#cfd8dc"/><rect x="26" y="14" width="14" height="20" rx="2" fill="#f4e9d8"/><rect x="43" y="6" width="10" height="28" rx="5" fill="#8aa4b8"/><rect x="56" y="12" width="20" height="22" rx="3" fill="#dcd3c7"/><rect x="80" y="10" width="14" height="24" rx="3" fill="#b9c7d1"/></svg>',
     cutlery: '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><rect x="4" y="6" width="92" height="28" rx="3" fill="#2f2a26"/><rect x="8" y="9" width="20" height="22" rx="2" fill="#3b352f"/><rect x="31" y="9" width="20" height="22" rx="2" fill="#3b352f"/><rect x="54" y="9" width="20" height="22" rx="2" fill="#3b352f"/><rect x="77" y="9" width="16" height="22" rx="2" fill="#3b352f"/><path d="M12 12v16M16 12v16M20 12v16M36 12v16M40 12v16M60 13v14M64 13v14M68 13v14M82 12v16" stroke="#d9d9d9" stroke-width="1.6"/></svg>',
@@ -355,81 +383,111 @@
     {
       id: 'bad-berg', test: /drack-installationen\/img\/bad\.jpg(\?|$)/, ar: 1168 / 880,
       hint: 'Tippen Sie auf einen Punkt im Foto',
-      initial: { shower: false, temp: 38, led: false, mirror: false, mlight: false, tap: false, drawers: false, night: false, tub: false, level: 0, bath: 38, floor: false },
+      initial: { shower: false, temp: 38, led: false, mirror: false, mlight: false, tap: false, drawers: false, night: false, tilt: false, win: false, tub: false, level: 0, bath: 38, floor: false },
       effects: [
         ['rain', { key: 'shower', poly: [[9, 9], [20, 9], [23, 80], [4, 82]], n: 50 }],
         ['glow', { key: 'led', at: [13, 31], rx: 8, ry: 6, color: '#ffe6b8', nightKey: 'night', max: .9 }],
         ['slice', { key: 'mirror', mode: 'doorL', rect: [31.6, 15.8, 18.1, 23.6], inside: INSIDE.cabinet }],
         ['glow', { key: 'mlight', at: [40.5, 27.5], rx: 15, ry: 17, color: '#fff1d2', nightKey: 'night', max: .75 }],
         ['water', { key: 'tap', from: [42.6, 42.4], to: [42.8, 46.9], w: 5, tempKey: 'temp' }],
-        ['slice', { key: 'drawers', mode: 'drawer', rect: [30.2, 50.2, 26.8, 6.4], inside: INSIDE.towels }],
-        ['slice', { key: 'drawers', mode: 'drawer', rect: [30.2, 56.7, 26.8, 7.6], inside: INSIDE.bath, delay: 220 }],
+        ['slice', { key: 'drawers', mode: 'pull', rect: [30.2, 56.7, 26.8, 7.6], pull: [-0.8, 3, 1.12], contents: INSIDE.topBath, insideStyle: 'background:#2b241d', wood: ['#dcc19b', '#b99a73'], delay: 220 }],
+        ['slice', { key: 'drawers', mode: 'pull', rect: [30.2, 50.2, 26.8, 6.4], pull: [-0.4, 1.2, 1.04], contents: INSIDE.topTowels, insideStyle: 'background:#2b241d', wood: ['#dcc19b', '#b99a73'] }],
         ['night', { key: 'night', poly: [[64.6, 21.8], [92.3, 21.8], [92.3, 47.3], [64.6, 47.3]], moon: [.8, .22] }],
+        ['slice', { key: 'win', tiltKey: 'tilt', mode: 'window', hinge: 'right', rect: [64, 19.8, 13.9, 26] }],
+        ['slice', { key: 'win', tiltKey: 'tilt', mode: 'window', hinge: 'left', rect: [77.9, 19.8, 13.9, 26], delay: 120 }],
         ['glow', { key: 'night', at: [52, 10], rx: 10, ry: 7, color: '#ffe9c4', max: .7 }],
         ['water', { key: 'tub', from: [92.7, 50.8], to: [90.6, 57.2], w: 4.5, tempKey: 'bath' }],
         ['fill', { key: 'level', onKey: 'tub', tempKey: 'bath', poly: [[69.4, 56.5], [76, 55.4], [86, 54.8], [96, 55.1], [99.4, 56.2], [99.2, 58.2], [92, 59.2], [84, 59.6], [76, 59.7], [70.4, 58.7]], top: 55.6, bottom: 59.8 }],
         ['glow', { key: 'floor', at: [50, 86], rx: 42, ry: 15, color: '#ffb470', max: .45 }]
       ],
       hotspots: [
-        { id: 'dusche', at: [14.2, 7.5], zoom: [16, 24, 1.9], kicker: 'Walk-in-Dusche', title: 'Regendusche, bodengleich', text: 'Kopfbrause 30 cm, Handbrause, Ablaufrinne ohne Schwelle. Thermostat hält die Temperatur, auch wenn nebenan jemand Wasser aufdreht.',
+        { id: 'dusche', at: [14.2, 7.5], zoom: [16, 24, 1.9], kicker: 'Walk-in-Dusche', title: 'Regendusche, bodengleich', text: 'Kopfbrause 30 cm an der Decke, Ablaufrinne ohne Schwelle, Boden im gleichen Stein wie das Bad. Die Nische hält Shampoo und Seife aus dem Weg.',
           options: [{ type: 'toggle', key: 'shower', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }, { type: 'toggle', key: 'led', label: 'Nische beleuchten' }],
-          auto: [['shower', true, 500], ['led', true, 1300]], callouts: [{ at: [13, 33], to: [27, 20], text: 'Ablagenische mit LED' }, { at: [14.2, 10.5], to: [30, 8], text: 'Kopfbrause 30 cm, Thermostat' }],
+          auto: [['shower', true, 500], ['led', true, 1300]], callouts: [{ at: [13, 33], to: [27, 20], text: 'Ablagenische 60 × 30, LED' }, { at: [14.2, 10.5], to: [30, 8], text: 'Kopfbrause 30 cm, Deckenanschluss' }, { at: [10, 75], to: [22, 86], text: 'Ablaufrinne, Gefälle 2 %' }],
           info: function (s) { return s.shower ? 'Mischer auf ' + s.temp + ' °C, ca. 9 Liter pro Minute' : 'Wasser aus'; } },
+        { id: 'brause', at: [8.6, 44.5], zoom: [11, 42, 2.4], kicker: 'Armatur Dusche', title: 'Unterputz-Thermostat mit Handbrause', text: 'Temperatur einmal einstellen, sie bleibt, auch wenn nebenan jemand Wasser aufdreht. Sperre bei 38 °C, Kinder können sich nicht verbrühen. Handbrause mit 160 cm Schlauch, alles in Edelstahl gebürstet.',
+          options: [{ type: 'toggle', key: 'shower', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }], auto: [['shower', true, 500]],
+          callouts: [{ at: [5.3, 42.8], to: [15, 52], text: 'Thermostat, Sperre 38 °C' }, { at: [12.4, 42], to: [23, 36], text: 'Handbrause, Schlauch 160 cm' }, { at: [5.2, 38.5], to: [14, 31], text: 'Umsteller Kopf / Hand' }],
+          info: function (s) { return s.shower ? 'Mischer auf ' + s.temp + ' °C' : 'Wasser aus'; } },
+        { id: 'glas', at: [36.6, 64], zoom: [36, 56, 1.8], kicker: 'Duschwand', title: 'Walk-in-Glaswand, 8 mm', text: 'Einscheiben-Sicherheitsglas mit Kalkschutz-Beschichtung, oben an der Decke gehalten. Kein Rahmen, keine Schiene, nichts zum Schrubben.',
+          callouts: [{ at: [36.8, 12], to: [46, 8], text: 'Deckenhalter, Edelstahl' }, { at: [36.7, 70], to: [46, 76], text: 'ESG 8 mm, Kalkschutz' }] },
         { id: 'spiegel', at: [40.5, 27], zoom: [40, 30, 2.3], kicker: 'Spiegelschrank', title: 'Spiegelschrank mit Lichtrahmen', text: 'Drei Fächer, Steckdose innen, Licht in der Tür. Tippen Sie, und er geht auf.',
           options: [{ type: 'toggle', key: 'mirror', label: 'Schrank öffnen' }, { type: 'toggle', key: 'mlight', label: 'Spiegellicht' }], auto: [['mlight', true, 400], ['mirror', true, 900]],
-          callouts: [{ at: [49.5, 20], to: [54, 10], text: 'Tür mit Dämpfung, 120 cm breit' }] },
-        { id: 'waschtisch', at: [43.2, 44.8], zoom: [44, 47, 2.6], kicker: 'Waschplatz', title: 'Aufsatzbecken mit Wandarmatur', text: 'Armatur aus der Wand, nichts steht im Weg beim Putzen. Darunter zwei Laden mit Vollauszug.',
-          options: [{ type: 'toggle', key: 'tap', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }, { type: 'toggle', key: 'drawers', label: 'Laden öffnen' }],
-          auto: [['tap', true, 450], ['drawers', true, 1250]], callouts: [{ at: [55.5, 53.5], to: [50, 61.5], text: 'Vollauszug, Softclose' }],
-          info: function (s) { return (s.tap ? 'Warmwasser ' + s.temp + ' °C' : 'Wasser aus') + (s.drawers ? ' · Laden offen' : ''); } },
-        { id: 'fenster', at: [85, 25], zoom: [80, 34, 1.7], kicker: 'Fenster', title: 'Holz-Alu-Fenster mit Bergblick', text: 'Dreifach verglast, innen Holz, außen pflegefrei. Am Abend wird es gemütlich.',
-          options: [{ type: 'toggle', key: 'night', label: 'Abendstimmung' }], auto: [['night', true, 500]],
-          callouts: [{ at: [64.5, 30], to: [60, 16], text: 'Dreifachglas, Ug 0,6' }] },
+          callouts: [{ at: [49.5, 20], to: [54, 10], text: 'Tür mit Dämpfung, 120 cm breit' }, { at: [40, 38.5], to: [30, 44], text: 'LED-Rahmen, warmweiß 3000 K' }] },
+        { id: 'armatur', at: [44.3, 41.2], zoom: [44, 44, 2.8], kicker: 'Armatur Waschtisch', title: 'Wandarmatur, Zweigriff', text: 'Aus der Wand statt vom Becken: nichts steht im Weg beim Putzen, kein Kalkrand um den Fuß. Auslauf 20 cm, Strahlregler 5 Liter pro Minute. Anschlüsse liegen in der Vorwand.',
+          options: [{ type: 'toggle', key: 'tap', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }], auto: [['tap', true, 450]],
+          callouts: [{ at: [44, 42.3], to: [53, 37], text: 'Wandauslauf 20 cm, Edelstahl' }, { at: [41.3, 42.3], to: [32, 37.5], text: 'Griffe kalt / warm' }, { at: [43, 47], to: [55, 46], text: 'Aufsatzbecken 55 cm' }],
+          info: function (s) { return s.tap ? 'Warmwasser ' + s.temp + ' °C' : 'Wasser aus'; } },
+        { id: 'waschtisch', at: [46, 57.5], zoom: [44, 54, 2.2], kicker: 'Waschplatz', title: 'Waschtisch Fichte, 140 cm', text: 'Platte mit Mineralwerkstoff, darunter zwei Laden mit Vollauszug und Dämpfung. Tippen Sie, die Laden fahren heraus.',
+          options: [{ type: 'toggle', key: 'drawers', label: 'Laden öffnen' }], auto: [['drawers', true, 500]],
+          callouts: [{ at: [55.5, 53.5], to: [62, 64], text: 'Vollauszug, Softclose' }, { at: [31.5, 57], to: [22, 63], text: 'Handtuchhalter seitlich' }, { at: [36, 49.3], to: [26, 46], text: 'Platte 3 cm, fugenlos' }],
+          info: function (s) { return s.drawers ? 'Laden offen' : 'Laden zu'; } },
+        { id: 'fenster', at: [85, 25], zoom: [80, 34, 1.7], kicker: 'Fenster', title: 'Holz-Alu-Fenster, zwei Flügel', text: 'Dreifach verglast, innen Holz, außen pflegefrei. Beide Flügel kippen zum Lüften oder drehen zum Putzen. Am Abend wird es gemütlich.',
+          options: [{ type: 'toggle', key: 'tilt', label: 'Kippen' }, { type: 'toggle', key: 'win', label: 'Öffnen' }, { type: 'toggle', key: 'night', label: 'Abendstimmung' }], auto: [['tilt', true, 500]],
+          callouts: [{ at: [64.5, 30], to: [60, 16], text: 'Dreifachglas, Ug 0,6' }, { at: [92.3, 32.5], to: [88, 52], text: 'Dreh-Kipp-Griff, abschließbar' }] },
         { id: 'wanne', at: [84, 66], zoom: [84, 63, 1.8], kicker: 'Badewanne', title: 'Freistehende Wanne, 180 cm', text: 'Standarmatur mit Handbrause. Einlassen, Temperatur wählen, fertig.',
           options: [{ type: 'toggle', key: 'tub', label: 'Wasser einlassen' }, { type: 'range', key: 'bath', label: 'Temperatur', min: 30, max: 42, unit: ' °C' }, { type: 'range', key: 'level', label: 'Füllstand', min: 0, max: 90, unit: ' %' }],
-          auto: [['tub', true, 500]], callouts: [{ at: [93.3, 52], to: [78, 46], text: 'Standarmatur, Edelstahl' }],
+          auto: [['tub', true, 500]], callouts: [{ at: [93.3, 52], to: [78, 46], text: 'Standarmatur, Edelstahl' }, { at: [82, 59], to: [70, 65], text: 'Wannenbrett Eiche' }, { at: [88, 76], to: [96, 70], text: 'Mineralguss, hält warm' }],
           info: function (s) { return s.level > 5 ? Math.round(s.level * 2.1) + ' Liter, ' + s.bath + ' °C' : 'Wanne leer'; } },
         { id: 'boden', at: [50, 86], zoom: [50, 80, 1.6], kicker: 'Boden', title: 'Feinsteinzeug mit Fußbodenheizung', text: 'Großformat 60 × 120, wenig Fugen. Fußbodenheizung läuft im Sommer als Trocknung für den Duschbereich mit.',
           options: [{ type: 'toggle', key: 'floor', label: 'Fußbodenheizung' }], auto: [['floor', true, 400]],
-          callouts: [{ at: [52, 84], to: [60, 93], text: 'Rutschfest R10, Fuge 2 mm' }] }
+          callouts: [{ at: [52, 84], to: [60, 93], text: 'Rutschfest R10, Fuge 2 mm' }, { at: [66, 86], to: [74, 94], text: 'Badematte Jute' }] }
       ]
     },
     {
       id: 'bad-grau', test: /(installateur\/bad\.jpg|musterbetrieb\/img\/bad\.jpg)(\?|$)/, ar: 1168 / 880,
-      initial: { shower: false, temp: 38, led: false, night: false, flush: 0, tap: false, drawers: false, mirror: false, mlight: false, rad: 22 },
+      initial: { shower: false, temp: 38, led: false, night: false, tilt: false, win: false, flush: 0, tap: false, drawers: false, mirror: false, mlight: false, rad: 22, floor: false },
       effects: [
         ['rain', { key: 'shower', poly: [[11, 11], [24, 11], [27, 70], [9, 72]], n: 50 }],
         ['glow', { key: 'led', at: [17.5, 32.5], rx: 7, ry: 5.5, color: '#ffe6b8', nightKey: 'night', max: .9 }],
         ['night', { key: 'night', poly: [[36, 17], [53.6, 17], [53.6, 43.2], [36, 43.2]], moon: [.75, .2] }],
+        ['slice', { key: 'win', tiltKey: 'tilt', mode: 'window', hinge: 'left', rect: [35.2, 14.6, 18.1, 27.8] }],
         ['glow', { key: 'night', at: [43, 6], rx: 9, ry: 6, color: '#ffe9c4', max: .6 }],
         ['swirl', { key: 'flush', at: [55.2, 57.5], rx: 4.5, ry: 2 }],
         ['water', { key: 'tap', from: [84.3, 50.6], to: [83.9, 55.2], w: 5, tempKey: 'temp' }],
-        ['slice', { key: 'drawers', mode: 'drawer', rect: [58.5, 57, 31.2, 13.2], inside: INSIDE.towels }],
-        ['slice', { key: 'drawers', mode: 'drawer', rect: [58.5, 71, 31.2, 16.5], inside: INSIDE.bath, delay: 220 }],
+        ['slice', { key: 'drawers', mode: 'pull', rect: [58.5, 65.2, 31.8, 29], shape: [[58.5, 65.2], [90.3, 79.3], [90.3, 94.2], [58.5, 71.2]], pull: [-6.5, -0.4, 1.04], contents: INSIDE.topBath, insideStyle: 'background:#2b221b', wood: ['#c89b66', '#a2763f'], delay: 220 }],
+        ['slice', { key: 'drawers', mode: 'pull', rect: [58.5, 55, 31.8, 23.8], shape: [[58.5, 55], [90.3, 68], [90.3, 78.8], [58.5, 64.8]], pull: [-6.5, -0.6, 1.04], contents: INSIDE.topTowels, insideStyle: 'background:#2b221b', wood: ['#c89b66', '#a2763f'] }],
         ['slice', { key: 'mirror', mode: 'doorL', rect: [70.5, 8.5, 29.5, 31.3], inside: INSIDE.cabinet }],
         ['glow', { key: 'mlight', at: [80, 5], rx: 17, ry: 5, color: '#fff4dc', nightKey: 'night', max: 1 }],
         ['glow', { key: 'mlight', at: [85, 25], rx: 16, ry: 16, color: '#fff1d2', nightKey: 'night', max: .55 }],
-        ['heat', { key: 'rad', rect: [92.2, 15, 7.8, 31] }]
+        ['heat', { key: 'rad', rect: [92.2, 15, 7.8, 31] }],
+        ['glow', { key: 'floor', at: [45, 84], rx: 40, ry: 14, color: '#ffb470', max: .4 }]
       ],
       hotspots: [
-        { id: 'dusche', at: [17.5, 9.5], zoom: [20, 25, 1.9], kicker: 'Walk-in-Dusche', title: 'Regendusche, bodengleich', text: 'Kopfbrause 25 cm, Handbrause an der Stange, Rinne an der Wand. Kein Rand, kein Stolpern.',
+        { id: 'dusche', at: [17.5, 9.5], zoom: [20, 25, 1.9], kicker: 'Walk-in-Dusche', title: 'Regendusche, bodengleich', text: 'Kopfbrause 25 cm am Wandarm, Rinne an der Wand, kein Rand, kein Stolpern. Der Boden läuft im gleichen Belag durch.',
           options: [{ type: 'toggle', key: 'shower', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }, { type: 'toggle', key: 'led', label: 'Nische beleuchten' }],
-          auto: [['shower', true, 500], ['led', true, 1300]], callouts: [{ at: [17.5, 12.5], to: [34, 9], text: 'Kopfbrause 25 cm, Thermostat' }],
+          auto: [['shower', true, 500], ['led', true, 1300]], callouts: [{ at: [17.5, 12.5], to: [34, 9], text: 'Kopfbrause 25 cm, Wandarm 40 cm' }, { at: [18, 34], to: [30, 27], text: 'Ablagenische 60 × 30, LED' }, { at: [12, 76], to: [24, 86], text: 'Ablaufrinne, Gefälle 2 %' }],
           info: function (s) { return s.shower ? 'Mischer auf ' + s.temp + ' °C' : 'Wasser aus'; } },
-        { id: 'fenster', at: [45, 22], zoom: [45, 30, 2.1], kicker: 'Fenster', title: 'Holzfenster mit Lüftungsstellung', text: 'Dreifach verglast. Feuchte raus, Wärme bleibt drin.',
-          options: [{ type: 'toggle', key: 'night', label: 'Abendstimmung' }], auto: [['night', true, 500]] },
-        { id: 'wc', at: [55, 60], zoom: [58, 55, 2.4], kicker: 'WC', title: 'Wand-WC, spülrandlos', text: 'Vorwandelement, 2-Mengen-Spülung mit 3 und 6 Litern. Kein Spülrand, leicht zu reinigen.',
+        { id: 'brause', at: [10.2, 36], zoom: [14, 34, 2.4], kicker: 'Armatur Dusche', title: 'Unterputz-Thermostat mit Handbrause', text: 'Temperatur einmal einstellen, sie bleibt, auch wenn nebenan jemand Wasser aufdreht. Sperre bei 38 °C, Kinder können sich nicht verbrühen. Handbrause an der Gleitstange, Schlauch 160 cm, alles schwarz matt.',
+          options: [{ type: 'toggle', key: 'shower', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }], auto: [['shower', true, 500]],
+          callouts: [{ at: [9.7, 38.6], to: [20, 45], text: 'Thermostat, Sperre 38 °C' }, { at: [10.3, 22.5], to: [22, 19], text: 'Handbrause, Gleitstange 90 cm' }, { at: [9.6, 30], to: [21, 32], text: 'Umsteller Kopf / Hand' }],
+          info: function (s) { return s.shower ? 'Mischer auf ' + s.temp + ' °C' : 'Wasser aus'; } },
+        { id: 'glas', at: [34.2, 46], zoom: [34, 40, 1.8], kicker: 'Duschwand', title: 'Walk-in-Glaswand, 8 mm', text: 'Einscheiben-Sicherheitsglas mit Kalkschutz-Beschichtung, Haltestange an der Decke. Kein Rahmen, keine Schiene, nichts zum Schrubben.',
+          callouts: [{ at: [31.5, 7.5], to: [22, 5], text: 'Haltestange Decke, Edelstahl schwarz' }, { at: [34.5, 55], to: [44, 60], text: 'ESG 8 mm, Kalkschutz' }] },
+        { id: 'fenster', at: [45, 22], zoom: [45, 30, 2.1], kicker: 'Fenster', title: 'Holzfenster, Dreh-Kipp', text: 'Dreifach verglast. Zum Lüften kippen, zum Putzen ganz öffnen. Feuchte raus, Wärme bleibt drin.',
+          options: [{ type: 'toggle', key: 'tilt', label: 'Kippen' }, { type: 'toggle', key: 'win', label: 'Öffnen' }, { type: 'toggle', key: 'night', label: 'Abendstimmung' }], auto: [['tilt', true, 500]],
+          callouts: [{ at: [53.4, 31.9], to: [62, 36], text: 'Griff, abschließbar' }, { at: [44, 44], to: [52, 50], text: 'Fensterbank Feinsteinzeug' }] },
+        { id: 'wc', at: [55, 60], zoom: [58, 55, 2.4], kicker: 'WC', title: 'Wand-WC, spülrandlos', text: 'Vorwandelement, 2-Mengen-Spülung mit 3 und 6 Litern. Kein Spülrand, nichts setzt sich fest. Sitz mit Absenkautomatik.',
           options: [{ type: 'buttons', label: 'Spülung', values: [{ label: 'Spülen', set: function () { return { flush: Date.now() }; } }] }], auto: [['flush', 'auto', 700]],
-          callouts: [{ at: [61.8, 43.5], to: [69, 39.5], text: 'Betätigungsplatte, 2 Mengen' }] },
-        { id: 'waschtisch', at: [84.3, 50], zoom: [80, 55, 2.3], kicker: 'Waschplatz', title: 'Waschtisch auf Eiche, 120 cm', text: 'Keramikbecken, schwarze Armatur, zwei Laden mit Vollauszug und Dämpfung.',
-          options: [{ type: 'toggle', key: 'tap', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }, { type: 'toggle', key: 'drawers', label: 'Laden öffnen' }],
-          auto: [['tap', true, 450], ['drawers', true, 1250]], callouts: [{ at: [89.7, 64], to: [81, 66.5], text: 'Vollauszug, Softclose' }],
-          info: function (s) { return (s.tap ? 'Warmwasser ' + s.temp + ' °C' : 'Wasser aus') + (s.drawers ? ' · Laden offen' : ''); } },
+          callouts: [{ at: [61.8, 43.5], to: [69, 39.5], text: 'Betätigungsplatte, 2 Mengen' }, { at: [52.3, 48.5], to: [44, 52], text: 'Rollenhalter, schwarz matt' }, { at: [55.5, 57], to: [62, 64], text: 'Sitz mit Absenkautomatik' }] },
+        { id: 'armatur', at: [85.6, 46.3], zoom: [85, 50, 2.6], kicker: 'Armatur Waschtisch', title: 'Einhebelmischer, schwarz matt', text: 'Kaltstart: in Mittelstellung kommt nur kalt, Warmwasser erst beim Drehen nach links. Spart Energie bei jedem kurzen Händewaschen. Strahlregler 5 Liter pro Minute, Keramikkartusche.',
+          options: [{ type: 'toggle', key: 'tap', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }], auto: [['tap', true, 450]],
+          callouts: [{ at: [86, 45.2], to: [93, 40], text: 'Hebel, Kaltstart' }, { at: [84.7, 48], to: [75, 43], text: 'Strahlregler 5 l/min' }],
+          info: function (s) { return s.tap ? 'Warmwasser ' + s.temp + ' °C' : 'Wasser aus'; } },
+        { id: 'waschtisch', at: [74, 66], zoom: [76, 68, 2], kicker: 'Waschplatz', title: 'Waschtisch auf Eiche, 120 cm', text: 'Keramik-Aufsatzbecken, Platte Eiche geölt, zwei Laden mit Vollauszug und Dämpfung. Tippen Sie, die Laden fahren heraus.',
+          options: [{ type: 'toggle', key: 'drawers', label: 'Laden öffnen' }], auto: [['drawers', true, 500]],
+          callouts: [{ at: [82, 57], to: [66, 48], text: 'Aufsatzbecken 60 cm, Keramik' }, { at: [97.3, 54], to: [88, 59], text: 'Seifenspender, passend' }, { at: [97.5, 72.5], to: [86, 80], text: 'Handtuchhalter seitlich' }],
+          info: function (s) { return s.drawers ? 'Laden offen' : 'Laden zu'; } },
         { id: 'spiegel', at: [85, 24], zoom: [82, 24, 1.9], kicker: 'Spiegelschrank', title: 'Spiegelschrank mit Lichtleiste', text: 'Beleuchtung oben, Steckdose innen, drei Fächer. Tippen Sie, und er geht auf.',
-          options: [{ type: 'toggle', key: 'mirror', label: 'Schrank öffnen' }, { type: 'toggle', key: 'mlight', label: 'Licht' }], auto: [['mlight', true, 400], ['mirror', true, 900]] },
+          options: [{ type: 'toggle', key: 'mirror', label: 'Schrank öffnen' }, { type: 'toggle', key: 'mlight', label: 'Licht' }], auto: [['mlight', true, 400], ['mirror', true, 900]],
+          callouts: [{ at: [80, 3.5], to: [68, 9], text: 'LED-Leiste, dimmbar, 4000 K' }, { at: [90, 20], to: [93, 14], text: 'Steckdose innen' }] },
         { id: 'heizkoerper', at: [96.5, 30], zoom: [90, 30, 2.2], kicker: 'Handtuchwärmer', title: 'Handtuchheizkörper, elektrisch oder am Heizkreis', text: 'Warm, wenn man aus der Dusche kommt. Schieben Sie die Temperatur hoch.',
           options: [{ type: 'range', key: 'rad', label: 'Vorlauf', min: 22, max: 60, unit: ' °C' }], auto: [['rad', 55, 500]],
-          info: function (s) { return s.rad < 26 ? 'Aus' : s.rad < 40 ? 'Lauwarm, ' + s.rad + ' °C' : 'Warm, ' + s.rad + ' °C'; } }
+          callouts: [{ at: [96.5, 23], to: [85, 36], text: '600 W, Zeitschaltuhr' }],
+          info: function (s) { return s.rad < 26 ? 'Aus' : s.rad < 40 ? 'Lauwarm, ' + s.rad + ' °C' : 'Warm, ' + s.rad + ' °C'; } },
+        { id: 'boden', at: [45, 78], zoom: [45, 76, 1.6], kicker: 'Boden', title: 'Feinsteinzeug 60 × 60, Fußbodenheizung', text: 'Rutschhemmend R10, Fuge 2 mm, Fußbodenheizung im ganzen Bad. Die Dusche liegt im gleichen Belag, mit Gefälle zur Rinne.',
+          options: [{ type: 'toggle', key: 'floor', label: 'Fußbodenheizung' }], auto: [['floor', true, 400]],
+          callouts: [{ at: [55, 90], to: [64, 86], text: 'Badematte, rutschfest' }, { at: [22, 76], to: [30, 84], text: 'Gefälle 2 % zur Rinne' }] }
       ]
     },
     {

@@ -378,3 +378,8 @@ footer .credit { display: block; margin-top: 10px; font-size: .85rem; color: var
 .fx-inside-lit{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,rgba(255,222,170,.95),rgba(255,196,120,.5) 38%,rgba(120,80,40,.15) 70%,transparent 90%);opacity:0;transition:opacity .7s;pointer-events:none}
 .fx-inside-lit.on{opacity:1}
 .fx-tintm{position:absolute;inset:0;opacity:0;transition:opacity .7s,background .7s;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.fx-slice-pull{transform-origin:50% 50%}.fx-slice-pull.open{box-shadow:-10px 14px 28px rgba(0,0,0,.45)}
+.fx-face{position:absolute;inset:0;transition:clip-path 1s cubic-bezier(.6,0,.2,1);pointer-events:none;overflow:hidden}
+.fx-face-top{background:linear-gradient(180deg,#e8d6b8,#d2b791)}
+.fx-face-inner{position:absolute}.fx-face-inner svg{width:100%;height:100%;display:block}
+.fx-slice-window{transform-origin:50% 100%}.fx-slice-window.open{box-shadow:0 10px 30px rgba(0,0,0,.35)}
