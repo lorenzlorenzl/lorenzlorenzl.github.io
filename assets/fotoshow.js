@@ -94,11 +94,17 @@
     var pos = 'left:' + r[0] + '%;top:' + r[1] + '%;width:' + r[2] + '%;height:' + r[3] + '%;';
     inside.style.cssText = pos + (c.insideStyle || '');
     if (c.inside) inside.innerHTML = c.inside;
+    var lit = el('div', 'fx-inside-lit'); inside.appendChild(lit);
     slice.style.cssText = pos + 'background-image:url("' + st.src + '");background-size:' + (10000 / r[2]) + '% ' + (10000 / r[3]) + '%;background-position:' + (r[2] >= 100 ? 0 : r[0] / (100 - r[2]) * 100) + '% ' + (r[3] >= 100 ? 0 : r[1] / (100 - r[3]) * 100) + '%;' + (c.delay ? 'transition-delay:' + c.delay + 'ms;' : '');
     if (c.delay) inside.style.transitionDelay = c.delay + 'ms';
+    if (c.shape) { /* Umriss im Bild (Prozent) auf das Stück umrechnen, z. B. schräges Dachfenster */
+      var cp = 'polygon(' + c.shape.map(function (pt) { return ((pt[0] - r[0]) / r[2] * 100).toFixed(2) + '% ' + ((pt[1] - r[1]) / r[3] * 100).toFixed(2) + '%'; }).join(',') + ')';
+      slice.style.clipPath = cp; inside.style.clipPath = cp;
+    }
     if (c.inside || c.insideStyle) st.html.appendChild(inside); st.html.appendChild(slice);
     return { update: function (s) {
       var on = !!s[c.key]; slice.classList.toggle('open', on); inside.classList.toggle('open', on);
+      if (c.lightKey) lit.classList.toggle('on', !!s[c.lightKey]);
       if (c.mode === 'spin') { var k = c.speedKey ? clamp(Number(s[c.speedKey]) / 12, .2, 1) : 1; slice.style.setProperty('--spd', (2.6 - 2.2 * k).toFixed(2) + 's'); }
     } };
   };
@@ -132,11 +138,16 @@
 
   /* Farbe über einer Fläche, Luminanz bleibt */
   FX.tint = function (st, c) {
-    var p = sv('path', { d: st.path(c.poly, c.holes), 'fill-rule': 'evenodd', class: 'fx-tint', opacity: 0 }, st.svg);
+    /* Wert: [key, label, farbe, blend, deckkraft] oder [key, label, [[farbe, blend, deckkraft], ...]] für mehrere Ebenen */
+    var d = st.path(c.poly, c.holes), paths = [];
+    for (var i = 0; i < (c.layers || 2); i++) paths.push(sv('path', { d: d, 'fill-rule': 'evenodd', class: 'fx-tint', opacity: 0 }, st.svg));
     return { update: function (s) {
       var v = null; (c.values || []).forEach(function (x) { if (String(x[0]) === String(s[c.key])) v = x; });
-      if (!v || !v[2]) { p.style.opacity = 0; return; }
-      p.setAttribute('fill', v[2]); p.style.mixBlendMode = v[3] || 'color'; p.style.opacity = v[4] == null ? 1 : v[4];
+      var layers = !v || !v[2] ? [] : (Array.isArray(v[2]) ? v[2] : [[v[2], v[3], v[4]]]);
+      paths.forEach(function (p, i) {
+        var L = layers[i]; if (!L) { p.style.opacity = 0; return; }
+        p.setAttribute('fill', L[0]); p.style.mixBlendMode = L[1] || 'color'; p.style.opacity = L[2] == null ? 1 : L[2];
+      });
     } };
   };
 
@@ -486,23 +497,22 @@
       id: 'gaube', test: /dach\/gaube\.jpg(\?|$)/, ar: 1168 / 880,
       initial: { win: false, rain: false, tile: 'anthrazit', wood: 'laerche', smoke: false, light: false },
       effects: [
-        ['slice', { key: 'win', mode: 'flapUp', rect: [73.6, 31.2, 16.2, 17.2], insideStyle: 'background:radial-gradient(ellipse at 50% 70%,#6b4f33,#1d1712 70%)' }],
-        ['glow', { key: 'light', at: [81.5, 41], rx: 10, ry: 9, color: '#ffd9a0', max: .9 }],
+        ['slice', { key: 'win', lightKey: 'light', mode: 'flapUp', rect: [72, 29.5, 19.5, 19.5], shape: [[75, 31], [91, 29.5], [85.5, 48.5], [72.5, 48.5]], insideStyle: 'background:radial-gradient(ellipse at 50% 70%,#4a3626,#15100c 75%)' }],
         ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 70, len: 26, slant: -2, mist: false }],
         ['wires', { key: 'rain', color: '#bfe8ff', lines: [[[11, 70.5], [55, 77.2], [93.2, 84.6]], [[82.4, 85], [82.4, 100]]] }],
-        ['tint', { key: 'tile', poly: [[11, 66], [33, 59.5], [62, 58.5], [71.5, 53], [71.5, 30], [80, 22], [100, 19], [100, 78], [93, 84.5], [55, 77], [11, 69.5]], holes: [[[73.2, 30.8], [90, 30.8], [90, 48.6], [73.2, 48.6]]], values: [['anthrazit', 'Anthrazit', null], ['rot', 'Naturrot', '#b24f36', 'hard-light', .85], ['braun', 'Kastanie', '#6e4a33', 'hard-light', .85], ['grau', 'Steingrau', '#8e9195', 'screen', .5]] }],
-        ['tint', { key: 'wood', poly: [[33.4, 18], [52, 10.5], [71, 30], [71, 53], [62, 58], [33.4, 58]], holes: [[[36, 35], [51.6, 35], [51.6, 57], [36, 57]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#9a9a96', 'color', 1], ['anthrazit', 'Anthrazit', '#3b3f45', 'multiply', .9], ['weiss', 'Weiß', '#ececea', 'screen', .85]] }],
+        ['tint', { key: 'tile', poly: [[10.5, 66.8], [55, 74.6], [93.3, 83], [100, 76], [100, 8.3], [91.5, 9.6], [80.5, 11.5], [76, 12.5], [62, 11], [50, 8.8], [39.5, 7.5], [48, 14.5], [57, 24.5], [62, 23.5], [62, 44.5], [51, 52], [51, 59.5], [33.5, 59.5], [33.5, 52], [25, 55.5]], holes: [[[75, 31], [91, 29.5], [85.5, 48.5], [72.5, 48.5]]], values: [['anthrazit', 'Anthrazit', null], ['rot', 'Naturrot', [['#8a3a2a', 'screen', .8], ['#b24f36', 'color', 1]]], ['braun', 'Kastanie', [['#5a3a26', 'screen', .75], ['#6e4a33', 'color', 1]]], ['grau', 'Steingrau', [['#9a9da1', 'screen', .5]]]] }],
+        ['tint', { key: 'wood', poly: [[33.5, 57.5], [33.5, 29.5], [31.5, 28.5], [40, 12.5], [55, 27.5], [62, 24.5], [62, 44.5], [51, 52], [50.5, 57.5]], holes: [[[36.5, 35], [51.5, 35], [51.5, 56], [36.5, 56]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#9a9a96', 'color', 1], ['anthrazit', 'Anthrazit', '#3b3f45', 'multiply', .9], ['weiss', 'Weiß', '#ececea', 'screen', .85]] }],
         ['smoke', { key: 'smoke', at: [85.6, 2.5] }]
       ],
       hotspots: [
-        { id: 'fenster', at: [82, 36], zoom: [82, 38, 2.2], kicker: 'Dachfenster', title: 'Dachflächenfenster, elektrisch', text: 'Klappt nach außen, Regensensor schließt automatisch. Innen Dämmrahmen, außen Eindeckrahmen aus Alu.',
+        { id: 'fenster', at: [82, 39], zoom: [82, 40, 2.2], kicker: 'Dachfenster', title: 'Dachflächenfenster, elektrisch', text: 'Klappt nach außen, Regensensor schließt automatisch. Innen Dämmrahmen, außen Eindeckrahmen aus Alu.',
           options: [{ type: 'toggle', key: 'win', label: 'Fenster öffnen' }, { type: 'toggle', key: 'light', label: 'Licht im Zimmer' }], auto: [['win', true, 500], ['light', true, 1200]],
           callouts: [{ at: [89.5, 32], to: [94, 22], text: 'Eindeckrahmen, dicht' }] },
         { id: 'rinne', at: [55, 77], zoom: [60, 76, 2], kicker: 'Regenwasser', title: 'Kupferrinne mit Fallrohr', text: 'Kupfer hält 50 Jahre und wird mit der Zeit braun bis grün. Lassen Sie es regnen.',
           options: [{ type: 'toggle', key: 'rain', label: 'Regen' }], auto: [['rain', true, 500]], callouts: [{ at: [82.4, 92], to: [70, 95], text: 'Fallrohr 100 mm, Laubfang' }] },
         { id: 'ziegel', at: [40, 62], zoom: [40, 60, 1.5], kicker: 'Eindeckung', title: 'Dachziegel in Farbe', text: 'Glasiert oder engobiert, in Anthrazit, Naturrot, Kastanie oder Steingrau. Das Dach zeigt es gleich.',
           options: [{ type: 'swatch', key: 'tile', label: 'Farbe', values: [['anthrazit', 'Anthrazit', '#3c3f43'], ['rot', 'Naturrot', '#b24f36'], ['braun', 'Kastanie', '#6e4a33'], ['grau', 'Steingrau', '#9a9da1']] }], auto: [['tile', 'rot', 600], ['tile', 'anthrazit', 2600]] },
-        { id: 'gaube', at: [45, 30], zoom: [48, 32, 1.8], kicker: 'Gaube', title: 'Gaube mit Holzverschalung', text: 'Lärche vergraut von selbst, oder wir streichen sie in Ihrer Farbe. Dahinter 20 cm Dämmung.',
+        { id: 'gaube', at: [44, 24], zoom: [46, 32, 1.8], kicker: 'Gaube', title: 'Gaube mit Holzverschalung', text: 'Lärche vergraut von selbst, oder wir streichen sie in Ihrer Farbe. Dahinter 20 cm Dämmung.',
           options: [{ type: 'swatch', key: 'wood', label: 'Verschalung', values: [['laerche', 'Lärche natur', '#c89a63'], ['grau', 'Silbergrau', '#9a9a96'], ['anthrazit', 'Anthrazit', '#3b3f45'], ['weiss', 'Weiß', '#ececea']] }], auto: [['wood', 'grau', 600], ['wood', 'laerche', 2600]] },
         { id: 'kamin', at: [85.5, 6], zoom: [84, 9, 2.3], kicker: 'Kamin', title: 'Kaminverkleidung in Blech', text: 'Verblecht mit Alu in Dachfarbe, Regenhaube drauf. Kein Putz, der abplatzt.',
           options: [{ type: 'toggle', key: 'smoke', label: 'Ofen heizt' }], auto: [['smoke', true, 500]] }
@@ -967,6 +977,10 @@
     var self = this; if (!this.open) return;
     this.clearTimers(); this.showCallouts(this.open, false);
     this.open = null; this.scene.hotspots.forEach(function (h) { h._btn.classList.remove('active'); });
+    /* Schalter (Fenster, Licht, Regen) gehen beim Zurück wieder zu, gewählte Farben bleiben */
+    var init = this.scene.initial || {}, changed = false;
+    for (var k in init) if (typeof init[k] === 'boolean' && this.state[k] !== init[k]) { this.state[k] = init[k]; changed = true; }
+    if (changed) this.update();
     this.setCam(50, 50, 1); this.back.hidden = true;
     this.panel.classList.remove('on'); this.later(function () { self.panel.hidden = true; }, 350);
     this.cam.classList.add('moving'); setTimeout(function () { self.cam.classList.remove('moving'); }, 520);

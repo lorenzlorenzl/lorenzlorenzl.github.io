@@ -375,3 +375,5 @@ footer .credit { display: block; margin-top: 10px; font-size: .85rem; color: var
   .hero .wrap{transform:none}
 }
 .fx-hero-marks .fx-mark-r span{left:auto;right:-6px;transform:translate(0,-100%)}
+.fx-inside-lit{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,rgba(255,222,170,.95),rgba(255,196,120,.5) 38%,rgba(120,80,40,.15) 70%,transparent 90%);opacity:0;transition:opacity .7s;pointer-events:none}
+.fx-inside-lit.on{opacity:1}
