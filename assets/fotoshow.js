@@ -139,14 +139,22 @@
   /* Farbe über einer Fläche, Luminanz bleibt */
   FX.tint = function (st, c) {
     /* Wert: [key, label, farbe, blend, deckkraft] oder [key, label, [[farbe, blend, deckkraft], ...]] für mehrere Ebenen */
-    var d = st.path(c.poly, c.holes), paths = [];
-    for (var i = 0; i < (c.layers || 2); i++) paths.push(sv('path', { d: d, 'fill-rule': 'evenodd', class: 'fx-tint', opacity: 0 }, st.svg));
+    /* mask: PNG-Maske (weiß = Fläche) neben dem Foto, pixelgenau; sonst Polygon */
+    var paths = [], i;
+    if (c.mask) {
+      var url = st.src.replace(/[^\/]*$/, c.mask);
+      for (i = 0; i < (c.layers || 2); i++) { var dv = el('div', 'fx-tintm'); dv.style.cssText = '-webkit-mask-image:url("' + url + '");mask-image:url("' + url + '")'; st.html.appendChild(dv); paths.push(dv); }
+    } else {
+      var d = st.path(c.poly, c.holes);
+      for (i = 0; i < (c.layers || 2); i++) paths.push(sv('path', { d: d, 'fill-rule': 'evenodd', class: 'fx-tint', opacity: 0 }, st.svg));
+    }
     return { update: function (s) {
       var v = null; (c.values || []).forEach(function (x) { if (String(x[0]) === String(s[c.key])) v = x; });
       var layers = !v || !v[2] ? [] : (Array.isArray(v[2]) ? v[2] : [[v[2], v[3], v[4]]]);
-      paths.forEach(function (p, i) {
-        var L = layers[i]; if (!L) { p.style.opacity = 0; return; }
-        p.setAttribute('fill', L[0]); p.style.mixBlendMode = L[1] || 'color'; p.style.opacity = L[2] == null ? 1 : L[2];
+      paths.forEach(function (p, k) {
+        var L = layers[k]; if (!L) { p.style.opacity = 0; return; }
+        if (c.mask) p.style.background = L[0]; else p.setAttribute('fill', L[0]);
+        p.style.mixBlendMode = L[1] || 'color'; p.style.opacity = L[2] == null ? 1 : L[2];
       });
     } };
   };
@@ -435,8 +443,8 @@
         ['slice', { key: 'drawers', mode: 'drawer', rect: [82.6, 54.5, 16.8, 9.2], inside: INSIDE.cutlery }],
         ['slice', { key: 'drawers', mode: 'drawer', rect: [82.6, 64.3, 16.8, 8.6], inside: INSIDE.pots, delay: 200 }],
         ['slice', { key: 'drawers', mode: 'drawer', rect: [82.6, 73.9, 16.8, 8.2], inside: INSIDE.towels, delay: 400 }],
-        ['tint', { key: 'wood', poly: [[12.6, 60], [58.4, 61.5], [58.2, 99.5], [13, 99.5]], values: [['eiche', 'Eiche natur', null], ['nuss', 'Nussbaum', '#5a3a24', 'multiply', .8], ['esche', 'Esche hell', '#efe6d4', 'soft-light', 1], ['anthrazit', 'Anthrazit matt', '#2d3136', 'multiply', .92]] }],
-        ['tint', { key: 'top', poly: [[4.6, 52], [58.5, 49.6], [60.5, 61.5], [13.5, 67.8]], values: [['stein', 'Naturstein hell', null], ['quarz', 'Quarz weiß', '#f4f4f1', 'screen', .75], ['eiche', 'Eiche massiv', '#a8763f', 'multiply', .7], ['granit', 'Granit schwarz', '#23262a', 'multiply', .88]] }],
+        ['tint', { key: 'wood', mask: 'kueche-m-wood.png', poly: [[12.6, 60], [58.4, 61.5], [58.2, 99.5], [13, 99.5]], values: [['eiche', 'Eiche natur', null], ['nuss', 'Nussbaum', '#5a3a24', 'multiply', .8], ['esche', 'Esche hell', '#efe6d4', 'soft-light', 1], ['anthrazit', 'Anthrazit matt', '#2d3136', 'multiply', .92]] }],
+        ['tint', { key: 'top', mask: 'kueche-m-top.png', poly: [[4.6, 52], [58.5, 49.6], [60.5, 61.5], [13.5, 67.8]], values: [['stein', 'Naturstein hell', null], ['quarz', 'Quarz weiß', '#f4f4f1', 'screen', .75], ['eiche', 'Eiche massiv', '#a8763f', 'multiply', .7], ['granit', 'Granit schwarz', '#23262a', 'multiply', .88]] }],
         ['night', { key: 'night', poly: [[71, 17], [95.6, 17], [95.6, 45.2], [71, 45.2]], moon: [.7, .2] }]
       ],
       hotspots: [
@@ -479,7 +487,7 @@
       id: 'wohnraum', test: /maler\/innen\.jpg(\?|$)/, ar: 1168 / 880,
       initial: { wall: 'salbei', lamp: false, night: false, tape: false },
       effects: [
-        ['tint', { key: 'wall', poly: [[16, 1.5], [86, 1.5], [86, 60], [27, 60], [27, 50], [16, 50]], holes: [[[38.4, 23], [60.9, 23], [60.9, 42.2], [38.4, 42.2]], [[31, 48.5], [68, 48.5], [68, 60.5], [31, 60.5]]], values: [['salbei', 'Salbei', null], ['terrakotta', 'Terrakotta', '#c4714b', 'color', 1], ['blau', 'Nachtblau', '#2f4d78', 'color', 1], ['sand', 'Sand', '#d8c3a0', 'color', 1], ['grau', 'Warmgrau', '#9a9690', 'color', 1], ['weiss', 'Weiß', '#f3f1ec', 'screen', .78]] }],
+        ['tint', { key: 'wall', mask: 'innen-m-wall.png', poly: [[16, 1.5], [86, 1.5], [86, 60], [27, 60], [27, 50], [16, 50]], holes: [[[38.4, 23], [60.9, 23], [60.9, 42.2], [38.4, 42.2]], [[31, 48.5], [68, 48.5], [68, 60.5], [31, 60.5]]], values: [['salbei', 'Salbei', null], ['terrakotta', 'Terrakotta', '#c4714b', 'color', 1], ['blau', 'Nachtblau', '#2f4d78', 'color', 1], ['sand', 'Sand', '#d8c3a0', 'color', 1], ['grau', 'Warmgrau', '#9a9690', 'color', 1], ['weiss', 'Weiß', '#f3f1ec', 'screen', .78]] }],
         ['glow', { key: 'lamp', at: [20, 30], rx: 11, ry: 9, color: '#ffe2b0', nightKey: 'night', max: .95 }],
         ['night', { key: 'night', poly: [[0, 1.5], [11.6, 1.5], [11.6, 48], [0, 48]], moon: [.6, .2] }],
         ['tape', { key: 'tape', lines: [[[16, 59.5], [27, 59.5]], [[68, 60], [86, 60.2]], [[16, 2], [86, 2]], [[86, 2], [86, 60]]] }]
@@ -500,8 +508,8 @@
         ['slice', { key: 'win', lightKey: 'light', mode: 'flapUp', rect: [72, 29.5, 19.5, 19.5], shape: [[75, 31], [91, 29.5], [85.5, 48.5], [72.5, 48.5]], insideStyle: 'background:radial-gradient(ellipse at 50% 70%,#4a3626,#15100c 75%)' }],
         ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 70, len: 26, slant: -2, mist: false }],
         ['wires', { key: 'rain', color: '#bfe8ff', lines: [[[11, 70.5], [55, 77.2], [93.2, 84.6]], [[82.4, 85], [82.4, 100]]] }],
-        ['tint', { key: 'tile', poly: [[10.5, 66.8], [55, 74.6], [93.3, 83], [100, 76], [100, 8.3], [91.5, 9.6], [80.5, 11.5], [76, 12.5], [62, 11], [50, 8.8], [39.5, 7.5], [48, 14.5], [57, 24.5], [62, 23.5], [62, 44.5], [51, 52], [51, 59.5], [33.5, 59.5], [33.5, 52], [25, 55.5]], holes: [[[75, 31], [91, 29.5], [85.5, 48.5], [72.5, 48.5]]], values: [['anthrazit', 'Anthrazit', null], ['rot', 'Naturrot', [['#8a3a2a', 'screen', .8], ['#b24f36', 'color', 1]]], ['braun', 'Kastanie', [['#5a3a26', 'screen', .75], ['#6e4a33', 'color', 1]]], ['grau', 'Steingrau', [['#9a9da1', 'screen', .5]]]] }],
-        ['tint', { key: 'wood', poly: [[33.5, 57.5], [33.5, 29.5], [31.5, 28.5], [40, 12.5], [55, 27.5], [62, 24.5], [62, 44.5], [51, 52], [50.5, 57.5]], holes: [[[36.5, 35], [51.5, 35], [51.5, 56], [36.5, 56]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#9a9a96', 'color', 1], ['anthrazit', 'Anthrazit', '#3b3f45', 'multiply', .9], ['weiss', 'Weiß', '#ececea', 'screen', .85]] }],
+        ['tint', { key: 'tile', mask: 'gaube-m-tile.png', poly: [[10.5, 66.8], [55, 74.6], [93.3, 83], [100, 76], [100, 8.3], [91.5, 9.6], [80.5, 11.5], [76, 12.5], [62, 11], [50, 8.8], [39.5, 7.5], [48, 14.5], [57, 24.5], [62, 23.5], [62, 44.5], [51, 52], [51, 59.5], [33.5, 59.5], [33.5, 52], [25, 55.5]], holes: [[[75, 31], [91, 29.5], [85.5, 48.5], [72.5, 48.5]]], values: [['anthrazit', 'Anthrazit', null], ['rot', 'Naturrot', [['#c4573a', 'overlay', .85], ['#b24f36', 'color', .75]]], ['braun', 'Kastanie', [['#8a5a3e', 'overlay', .85], ['#6e4a33', 'color', .8]]], ['grau', 'Steingrau', [['#9a9da1', 'screen', .45]]]] }],
+        ['tint', { key: 'wood', mask: 'gaube-m-wood.png', poly: [[33.5, 57.5], [33.5, 29.5], [31.5, 28.5], [40, 12.5], [55, 27.5], [62, 24.5], [62, 44.5], [51, 52], [50.5, 57.5]], holes: [[[36.5, 35], [51.5, 35], [51.5, 56], [36.5, 56]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#9a9a96', 'color', 1], ['anthrazit', 'Anthrazit', '#3b3f45', 'multiply', .9], ['weiss', 'Weiß', '#ececea', 'screen', .85]] }],
         ['smoke', { key: 'smoke', at: [85.6, 2.5] }]
       ],
       hotspots: [
@@ -594,8 +602,8 @@
       id: 'fassade', test: /maler\/fassade\.jpg/, ar: 1168 / 880, priority: 1,
       initial: { wall: 'weiss', shut: 'holz', lamp: false },
       effects: [
-        ['tint', { key: 'wall', poly: [[17, 37], [37, 9.5], [68.5, 29], [68.5, 80], [17, 80]], holes: [[[22, 29], [38, 29], [38, 44], [22, 44]], [[41, 26], [60, 26], [60, 43], [41, 43]], [[22, 55], [38, 55], [38, 72], [22, 72]], [[41, 55], [60, 55], [60, 72], [41, 72]]], values: [['weiss', 'Weiß', null], ['creme', 'Creme', '#efe4c8', 'multiply', .92], ['sand', 'Sand', '#e3cfa6', 'multiply', .9], ['grau', 'Hellgrau', '#c3c6ca', 'multiply', .9], ['salbei', 'Salbei', '#b8c2a6', 'multiply', .9], ['graphit', 'Graphit', '#6a6e74', 'multiply', .88]] }],
-        ['tint', { key: 'shut', poly: [[22.3, 30], [26.5, 30], [26.5, 43.5], [22.3, 43.5]], holes: [[[33.5, 30], [37.7, 30], [37.7, 43.5], [33.5, 43.5]], [[41, 27], [45.5, 27], [45.5, 42.5], [41, 42.5]], [[54.5, 27], [59, 27], [59, 42.5], [54.5, 42.5]], [[22.3, 56], [26.5, 56], [26.5, 71], [22.3, 71]], [[33.5, 56], [37.7, 56], [37.7, 71], [33.5, 71]], [[41, 56], [45.5, 56], [45.5, 71], [41, 71]], [[54.5, 56], [59, 56], [59, 71], [54.5, 71]]], values: [['holz', 'Holz natur', null], ['anthrazit', 'Anthrazit', '#2f3338', 'multiply', .85], ['gruen', 'Tannengrün', '#3f5a3c', 'color', 1], ['blau', 'Taubenblau', '#4a6a8e', 'color', 1], ['weiss', 'Weiß', '#f2f0ea', 'screen', .8]] }],
+        ['tint', { key: 'wall', mask: 'fassade-m-wall.png', poly: [[17, 37], [37, 9.5], [68.5, 29], [68.5, 80], [17, 80]], holes: [[[22, 29], [38, 29], [38, 44], [22, 44]], [[41, 26], [60, 26], [60, 43], [41, 43]], [[22, 55], [38, 55], [38, 72], [22, 72]], [[41, 55], [60, 55], [60, 72], [41, 72]]], values: [['weiss', 'Weiß', null], ['creme', 'Creme', '#efe4c8', 'multiply', .92], ['sand', 'Sand', '#e3cfa6', 'multiply', .9], ['grau', 'Hellgrau', '#c3c6ca', 'multiply', .9], ['salbei', 'Salbei', '#b8c2a6', 'multiply', .9], ['graphit', 'Graphit', '#6a6e74', 'multiply', .88]] }],
+        ['tint', { key: 'shut', mask: 'fassade-m-shut.png', poly: [[22.3, 30], [26.5, 30], [26.5, 43.5], [22.3, 43.5]], holes: [[[33.5, 30], [37.7, 30], [37.7, 43.5], [33.5, 43.5]], [[41, 27], [45.5, 27], [45.5, 42.5], [41, 42.5]], [[54.5, 27], [59, 27], [59, 42.5], [54.5, 42.5]], [[22.3, 56], [26.5, 56], [26.5, 71], [22.3, 71]], [[33.5, 56], [37.7, 56], [37.7, 71], [33.5, 71]], [[41, 56], [45.5, 56], [45.5, 71], [41, 71]], [[54.5, 56], [59, 56], [59, 71], [54.5, 71]]], values: [['holz', 'Holz natur', null], ['anthrazit', 'Anthrazit', '#2f3338', 'multiply', .85], ['gruen', 'Tannengrün', '#3f5a3c', 'color', 1], ['blau', 'Taubenblau', '#4a6a8e', 'color', 1], ['weiss', 'Weiß', '#f2f0ea', 'screen', .8]] }],
         ['glow', { key: 'lamp', at: [74.5, 61], rx: 9, ry: 8, color: '#ffe2b0', max: .95 }]
       ],
       hotspots: [
@@ -616,7 +624,7 @@
       effects: [
         ['slice', { key: 'doors', mode: 'doorL', rect: [25.3, 0, 14.5, 91], inside: INSIDE.wardrobe }],
         ['slice', { key: 'doors', mode: 'doorR', rect: [61.2, 30.7, 8.1, 48.8], inside: INSIDE.shelves, delay: 250 }],
-        ['tint', { key: 'wood', poly: [[6, 0], [40, 0], [76, 48], [76, 75], [6, 92]], values: [['eiche', 'Eiche hell', null], ['nuss', 'Nussbaum', '#5a3a24', 'multiply', .8], ['weiss', 'Weiß matt', '#f1efe9', 'screen', .85], ['schwarz', 'Schwarz', '#2a2d31', 'multiply', .9], ['gruen', 'Salbeigrün', '#5e6b58', 'color', 1]] }],
+        ['tint', { key: 'wood', mask: 'schrank-m-wood.png', poly: [[6, 0], [40, 0], [76, 48], [76, 75], [6, 92]], values: [['eiche', 'Eiche hell', null], ['nuss', 'Nussbaum', '#5a3a24', 'multiply', .8], ['weiss', 'Weiß matt', '#f1efe9', 'screen', .85], ['schwarz', 'Schwarz', '#2a2d31', 'multiply', .9], ['gruen', 'Salbeigrün', '#5e6b58', 'color', 1]] }],
         ['glow', { key: 'lamp', at: [93.3, 57], rx: 9, ry: 8, color: '#ffe2b0', nightKey: 'night', max: .95 }],
         ['night', { key: 'night', poly: [[93, 26], [100, 26], [100, 56], [93, 56]], moon: [.5, .25] }]
       ],
@@ -637,7 +645,7 @@
       id: 'carport', test: /dach\/carport\.jpg/, ar: 1168 / 880, priority: 1,
       initial: { wood: 'laerche', car: false, led: false, rain: false },
       effects: [
-        ['tint', { key: 'wood', poly: [[18.5, 19.5], [80, 23.5], [80, 28.5], [18.5, 26]], holes: [[[19.7, 26], [22.7, 26], [22.7, 72.7], [19.7, 72.7]], [[75, 33], [77.5, 33], [77.5, 70.5], [75, 70.5]], [[22.7, 38], [35, 41.5], [35, 66], [22.7, 71]], [[35, 40], [63, 40], [63, 60], [35, 60]], [[22.7, 26], [75, 28.5], [63, 40], [35, 40]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#8f8f8b', 'color', 1], ['anthrazit', 'Anthrazit', '#3a3d42', 'multiply', .9], ['weiss', 'Weiß', '#efede8', 'screen', .85], ['nuss', 'Dunkel geölt', '#5c3d27', 'multiply', .85]] }],
+        ['tint', { key: 'wood', mask: 'carport-m-wood.png', poly: [[18.5, 19.5], [80, 23.5], [80, 28.5], [18.5, 26]], holes: [[[19.7, 26], [22.7, 26], [22.7, 72.7], [19.7, 72.7]], [[75, 33], [77.5, 33], [77.5, 70.5], [75, 70.5]], [[22.7, 38], [35, 41.5], [35, 66], [22.7, 71]], [[35, 40], [63, 40], [63, 60], [35, 60]], [[22.7, 26], [75, 28.5], [63, 40], [35, 40]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#8f8f8b', 'color', 1], ['anthrazit', 'Anthrazit', '#3a3d42', 'multiply', .9], ['weiss', 'Weiß', '#efede8', 'screen', .85], ['nuss', 'Dunkel geölt', '#5c3d27', 'multiply', .85]] }],
         ['car', { key: 'car', rect: [33, 44, 34] }],
         ['glow', { key: 'led', at: [49, 31], rx: 26, ry: 9, color: '#ffe0b0', max: .85 }],
         ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 60, len: 26, slant: -2, mist: false }],
@@ -747,9 +755,10 @@
       caption: 'Altbauwohnung: Wand, Heizkörper, Parkett. Tippen Sie auf die Punkte, die Farben wechseln im Foto.',
       initial: { wall: 'weiss', rad: 'weiss', boden: 'natur', night: false },
       effects: [
-        ['tint', { key: 'wall', poly: [[48, 4], [84, 4], [84, 75], [48, 75]], holes: [[[56, 20], [60, 20], [61, 25], [63.5, 27], [63, 40], [62.5, 60], [62.5, 74.5], [55.5, 74.5], [55.5, 45], [55, 30]], [[64, 24], [66.5, 11.5], [70.5, 12.5], [66, 27]]], values: [['weiss', 'Weiß', null], ['creme', 'Creme', '#f0e3c9', 'multiply', .9], ['salbei', 'Salbei', '#c3cdb4', 'multiply', .9], ['terrakotta', 'Terrakotta', '#d8a083', 'multiply', .9], ['blau', 'Taubenblau', '#aabbd0', 'multiply', .9], ['greige', 'Greige', '#d4cdc2', 'multiply', .9]] }],
-        ['tint', { key: 'rad', poly: [[0.8, 60.5], [17, 60.5], [17, 77.5], [0.8, 77.5]], holes: [[[32.8, 56.5], [39.5, 56.5], [39.5, 68.5], [32.8, 68.5]], [[92.6, 50.5], [96.8, 50.5], [96.8, 57.5], [92.6, 57.5]]], values: [['weiss', 'Weiß', null], ['anthrazit', 'Anthrazit', '#3a3d42', 'multiply', .9], ['silber', 'Silber', '#b9bcc2', 'multiply', .9], ['schwarz', 'Schwarz matt', '#222', 'multiply', .9]] }],
-        ['tint', { key: 'boden', poly: [[0, 78], [32, 78], [33, 80], [40, 84], [46, 93], [38, 100], [0, 100]], holes: [[[85.5, 64], [100, 62], [100, 100], [86, 100]]], values: [['natur', 'Eiche natur', null], ['dunkel', 'Dunkel geölt', '#6b4a2e', 'multiply', .75], ['weiss', 'Weiß geölt', '#efe6d8', 'screen', .7], ['grau', 'Grau geölt', '#8d8a85', 'color', .9]] }],
+        ['tint', { key: 'wall', mask: 'hero-m-wall.png', poly: [[48, 4], [84, 4], [84, 75], [48, 75]], holes: [[[56, 20], [60, 20], [61, 25], [63.5, 27], [63, 40], [62.5, 60], [62.5, 74.5], [55.5, 74.5], [55.5, 45], [55, 30]], [[64, 24], [66.5, 11.5], [70.5, 12.5], [66, 27]]], values: [['weiss', 'Weiß', null], ['creme', 'Creme', '#f0e3c9', 'multiply', .9], ['salbei', 'Salbei', '#c3cdb4', 'multiply', .9], ['terrakotta', 'Terrakotta', '#d8a083', 'multiply', .9], ['blau', 'Taubenblau', '#aabbd0', 'multiply', .9], ['greige', 'Greige', '#d4cdc2', 'multiply', .9]] }],
+        ['tint', { key: 'rad', mask: 'hero-m-rad.png', poly: [[0.8, 60.5], [17, 60.5], [17, 77.5], [0.8, 77.5]], holes: [[[32.8, 56.5], [39.5, 56.5], [39.5, 68.5], [32.8, 68.5]], [[92.6, 50.5], [96.8, 50.5], [96.8, 57.5], [92.6, 57.5]]], values: [['weiss', 'Weiß', null], ['anthrazit', 'Anthrazit', '#3a3d42', 'multiply', .9], ['silber', 'Silber', '#b9bcc2', 'multiply', .9], ['schwarz', 'Schwarz matt', '#222', 'multiply', .9]] }],
+        ['tint', { key: 'boden', mask: 'hero-m-boden.png', poly: [[0, 78], [32, 78], [33, 80], [40, 84], [46, 93], [38, 100], [0, 100]], holes: [[[85.5, 64], [100, 62], [100, 100], [86, 100]]], values: [['natur', 'Eiche natur', null], ['dunkel', 'Dunkel geölt', '#6b4a2e', 'multiply', .75], ['weiss', 'Weiß geölt', '#efe6d8', 'screen', .7], ['grau', 'Grau geölt', '#8d8a85', 'color', .9]] }],
+        ['tint', { key: 'boden', mask: 'hero-m-boden2.png', poly: [[0, 78], [32, 78], [33, 80], [40, 84], [46, 93], [38, 100], [0, 100]], holes: [[[85.5, 64], [100, 62], [100, 100], [86, 100]]], values: [['natur', 'Eiche natur', null], ['dunkel', 'Dunkel geölt', '#6b4a2e', 'multiply', .75], ['weiss', 'Weiß geölt', '#efe6d8', 'screen', .7], ['grau', 'Grau geölt', '#8d8a85', 'color', .9]] }],
         ['glow', { key: 'night', at: [62, 40], rx: 30, ry: 26, color: '#ffe3b0', max: .3 }],
         ['night', { key: 'night', poly: [[0, 0], [18, 0], [18, 57], [0, 57]], moon: [.6, .3] }]
       ],
@@ -772,7 +781,7 @@
       caption: 'In der Werkstatt: Massivholz, Handwerkzeug, Abendlicht. Tippen Sie auf die Punkte.',
       initial: { holz: 'natur', night: false },
       effects: [
-        ['tint', { key: 'holz', poly: [[35, 66], [44, 62], [64, 61.5], [86, 62], [88, 72], [82, 87], [60, 91], [35, 74]], values: [['natur', 'Eiche natur', null], ['geoelt', 'Geölt', '#c48a4a', 'multiply', .8], ['rauch', 'Räuchereiche', '#5a3a24', 'multiply', .8], ['weiss', 'Weiß geölt', '#f0e6d6', 'screen', .75], ['schwarz', 'Schwarz', '#2a2d31', 'multiply', .85]] }],
+        ['tint', { key: 'holz', mask: 'hero-m-holz.png', poly: [[35, 66], [44, 62], [64, 61.5], [86, 62], [88, 72], [82, 87], [60, 91], [35, 74]], values: [['natur', 'Eiche natur', null], ['geoelt', 'Geölt', '#c48a4a', 'multiply', .8], ['rauch', 'Räuchereiche', '#5a3a24', 'multiply', .8], ['weiss', 'Weiß geölt', '#f0e6d6', 'screen', .75], ['schwarz', 'Schwarz', '#2a2d31', 'multiply', .85]] }],
         ['night', { key: 'night', poly: [[0, 0], [10, 0], [10, 44], [0, 44]], moon: [.5, .3] }],
         ['glow', { key: 'night', at: [60, 50], rx: 32, ry: 22, color: '#ffd9a0', max: .35 }]
       ],
@@ -793,7 +802,7 @@
       caption: 'Neueindeckung: Ziegel, Unterbau, Gerüst, Wetter. Tippen Sie auf die Punkte.',
       initial: { ziegel: 'rot', rain: false, night: false },
       effects: [
-        ['tint', { key: 'ziegel', poly: [[33, 43], [46, 40], [60, 43], [83, 64], [83, 96], [60, 98], [39, 78]], holes: [[[48, 43.5], [57, 43.5], [57, 66], [48, 66]], [[11, 28], [25, 27], [25, 44], [11, 44]]], values: [['rot', 'Naturrot', null], ['anthrazit', 'Anthrazit', '#3b3f44', 'multiply', .85], ['braun', 'Dunkelbraun', '#5a3a2a', 'multiply', .85], ['engobe', 'Rot engobiert', '#b8412a', 'multiply', .6]] }],
+        ['tint', { key: 'ziegel', mask: 'hero-m-ziegel.png', poly: [[33, 43], [46, 40], [60, 43], [83, 64], [83, 96], [60, 98], [39, 78]], holes: [[[48, 43.5], [57, 43.5], [57, 66], [48, 66]], [[11, 28], [25, 27], [25, 44], [11, 44]]], values: [['rot', 'Naturrot', null], ['anthrazit', 'Anthrazit', '#3b3f44', 'multiply', .85], ['braun', 'Dunkelbraun', '#5a3a2a', 'multiply', .85], ['engobe', 'Rot engobiert', '#b8412a', 'multiply', .6]] }],
         ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 70, len: 26, slant: -3, mist: true }],
         ['wires', { key: 'rain', color: '#bfe8ff', lines: [[[33, 76], [55, 86], [83, 96]]] }],
         ['night', { key: 'night', poly: [[0, 0], [100, 0], [100, 20], [72, 24], [50, 22], [30, 24], [12, 28], [0, 22]], moon: [.75, .3] }]
