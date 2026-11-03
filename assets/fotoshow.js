@@ -1129,7 +1129,7 @@
     var wrap = $('.wrap', hero) || hero;
     var cta = el('button', 'fx-hero-cta', '<i></i>Foto erkunden'); cta.type = 'button';
     cta.addEventListener('click', function () { openOverlay(src, null); });
-    wrap.appendChild(cta);
+    hero.appendChild(cta);
     function layout() {
       var w = hero.clientWidth, h = hero.clientHeight, ar = scene.ar;
       var rw = Math.max(w, h * ar), rh = rw / ar, ox = (w - rw) / 2, oy = (h - rh) / 2;
