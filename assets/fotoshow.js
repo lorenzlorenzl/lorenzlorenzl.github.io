@@ -802,7 +802,7 @@
       caption: 'Neueindeckung: Ziegel, Unterbau, Gerüst, Wetter. Tippen Sie auf die Punkte.',
       initial: { ziegel: 'rot', rain: false, night: false },
       effects: [
-        ['tint', { key: 'ziegel', mask: 'hero-m-ziegel.png', poly: [[33, 43], [46, 40], [60, 43], [83, 64], [83, 96], [60, 98], [39, 78]], holes: [[[48, 43.5], [57, 43.5], [57, 66], [48, 66]], [[11, 28], [25, 27], [25, 44], [11, 44]]], values: [['rot', 'Naturrot', null], ['anthrazit', 'Anthrazit', '#3b3f44', 'multiply', .85], ['braun', 'Dunkelbraun', '#5a3a2a', 'multiply', .85], ['engobe', 'Rot engobiert', '#b8412a', 'multiply', .6]] }],
+        ['tint', { key: 'ziegel', mask: 'hero-m-ziegel2.png', poly: [[33, 43], [46, 40], [60, 43], [83, 64], [83, 96], [60, 98], [39, 78]], holes: [[[48, 43.5], [57, 43.5], [57, 66], [48, 66]], [[11, 28], [25, 27], [25, 44], [11, 44]]], values: [['rot', 'Naturrot', null], ['anthrazit', 'Anthrazit', '#3b3f44', 'multiply', .85], ['braun', 'Dunkelbraun', '#5a3a2a', 'multiply', .85], ['engobe', 'Rot engobiert', '#b8412a', 'multiply', .6]] }],
         ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 70, len: 26, slant: -3, mist: true }],
         ['wires', { key: 'rain', color: '#bfe8ff', lines: [[[33, 76], [55, 86], [83, 96]]] }],
         ['night', { key: 'night', poly: [[0, 0], [100, 0], [100, 20], [72, 24], [50, 22], [30, 24], [12, 28], [0, 22]], moon: [.75, .3] }]
