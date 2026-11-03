@@ -371,6 +371,7 @@ footer .credit { display: block; margin-top: 10px; font-size: .85rem; color: var
 .fx-ov figcaption{max-width:900px}
 @media (max-width:720px){
   .fx-hero-marks{display:none}
-  .fx-hero-cta{right:16px;bottom:14px}
+  .fx-hero-cta{right:16px;bottom:16px}
+  .hero .wrap{transform:none}
 }
 .fx-hero-marks .fx-mark-r span{left:auto;right:-6px;transform:translate(0,-100%)}
