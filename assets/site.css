@@ -296,7 +296,7 @@ footer .credit { display: block; margin-top: 10px; font-size: .85rem; color: var
 .fx-stage.zoomed .fx-hint{opacity:0}
 .fx-tour{position:absolute;left:50%;top:14px;transform:translate(-50%,-20px);background:rgba(11,18,32,.85);color:#fff;padding:8px 14px;border-radius:999px;font-size:.85rem;font-weight:700;opacity:0;transition:opacity .4s,transform .4s var(--ease);pointer-events:none;z-index:5;backdrop-filter:blur(6px);white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
 .fx-tour.on{opacity:1;transform:translate(-50%,0)}
-.fx-back{position:absolute;left:14px;top:14px;z-index:5;border:0;background:rgba(255,255,255,.92);color:var(--ink);font-weight:700;font-size:.85rem;padding:8px 12px;border-radius:999px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.fx-back{position:absolute;left:14px;bottom:12px;z-index:5;border:0;background:rgba(255,255,255,.92);color:var(--ink);font-weight:700;font-size:.85rem;padding:8px 12px;border-radius:999px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .fx-back[hidden]{display:none}
 .fx-panel{position:absolute;left:18px;bottom:18px;width:min(380px,42%);z-index:6;background:rgba(255,255,255,.9);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.6);border-radius:16px;padding:18px 18px 14px;box-shadow:0 20px 50px rgba(0,0,0,.35);opacity:0;transform:translateY(16px);transition:opacity .4s,transform .5s var(--ease);max-height:calc(100% - 36px);overflow:auto;box-sizing:border-box}
 .fx-panel.on{opacity:1;transform:none}

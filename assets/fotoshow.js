@@ -407,7 +407,7 @@
       ],
       hotspots: [
         { id: 'umbau', at: [60, 8], zoom: [60, 22, 1.5], kicker: 'So läuft der Umbau', title: 'Ihr Bad in 10 Werktagen', text: 'Tag 1 bis 2 Abbruch und Entsorgung, Tag 3 bis 4 Leitungen und Abfluss, Tag 5 bis 7 Fliesen, Tag 8 bis 9 Montage, Tag 10 Übergabe. Fliesenleger, Elektriker und Maler kommen über uns, Sie haben einen Ansprechpartner. Festpreis nach Besichtigung, Förderung für barrierefreien Umbau prüfen wir mit.' },
-        { id: 'dusche', at: [14.2, 7.5], zoom: [50, 50, 1], kicker: 'Dusche', title: 'Bodengleich, ohne Einstieg', text: 'Kein Rand zum Drübersteigen, auch mit 80 noch bequem. Thermostat hält die Temperatur, Sperre bei 38 °C: Kinder können sich nicht verbrühen. Der Boden trocknet über die Fußbodenheizung, kein Schimmel in den Fugen. Umbau der Dusche allein: 4 bis 5 Werktage.',
+        { id: 'dusche', at: [14.2, 7.5], zoom: [20, 30, 1.25], kicker: 'Dusche', title: 'Bodengleich, ohne Einstieg', text: 'Kein Rand zum Drübersteigen, auch mit 80 noch bequem. Thermostat hält die Temperatur, Sperre bei 38 °C: Kinder können sich nicht verbrühen. Der Boden trocknet über die Fußbodenheizung, kein Schimmel in den Fugen. Umbau der Dusche allein: 4 bis 5 Werktage.',
           options: [{ type: 'toggle', key: 'shower', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }, { type: 'toggle', key: 'led', label: 'Nische beleuchten' }],
           auto: [['shower', true, 500], ['led', true, 1300]], callouts: [{ at: [5.3, 42.8], to: [15, 52], text: 'Thermostat, Sperre 38 °C' }, { at: [10, 75], to: [22, 86], text: 'Rinne an der Wand, kein Stolpern' }],
           info: function (s) { return s.shower ? 'Mischer auf ' + s.temp + ' °C' : 'Wasser aus'; } },
@@ -452,7 +452,7 @@
       ],
       hotspots: [
         { id: 'umbau', at: [5, 52], zoom: [14, 50, 1.6], kicker: 'So läuft der Umbau', title: 'Ihr Bad in 10 Werktagen', text: 'Tag 1 bis 2 Abbruch und Entsorgung, Tag 3 bis 4 Leitungen und Abfluss, Tag 5 bis 7 Fliesen, Tag 8 bis 9 Montage, Tag 10 Übergabe. Fliesenleger, Elektriker und Maler kommen über uns, Sie haben einen Ansprechpartner. Festpreis nach Besichtigung, Förderung für barrierefreien Umbau prüfen wir mit.' },
-        { id: 'dusche', at: [17.5, 9.5], zoom: [50, 50, 1], kicker: 'Dusche', title: 'Bodengleich, ohne Einstieg', text: 'Kein Rand zum Drübersteigen, auch mit 80 noch bequem. Thermostat hält die Temperatur, Sperre bei 38 °C: Kinder können sich nicht verbrühen. Der Boden trocknet über die Fußbodenheizung, kein Schimmel in den Fugen. Umbau der Dusche allein: 4 bis 5 Werktage.',
+        { id: 'dusche', at: [17.5, 9.5], zoom: [22, 30, 1.25], kicker: 'Dusche', title: 'Bodengleich, ohne Einstieg', text: 'Kein Rand zum Drübersteigen, auch mit 80 noch bequem. Thermostat hält die Temperatur, Sperre bei 38 °C: Kinder können sich nicht verbrühen. Der Boden trocknet über die Fußbodenheizung, kein Schimmel in den Fugen. Umbau der Dusche allein: 4 bis 5 Werktage.',
           options: [{ type: 'toggle', key: 'shower', label: 'Wasser an' }, { type: 'range', key: 'temp', label: 'Temperatur', min: 20, max: 45, unit: ' °C' }, { type: 'toggle', key: 'led', label: 'Nische beleuchten' }],
           auto: [['shower', true, 500], ['led', true, 1300]], callouts: [{ at: [9.7, 38.6], to: [20, 45], text: 'Thermostat, Sperre 38 °C' }, { at: [12, 76], to: [24, 86], text: 'Rinne an der Wand, kein Stolpern' }],
           info: function (s) { return s.shower ? 'Mischer auf ' + s.temp + ' °C' : 'Wasser aus'; } },
