@@ -35,7 +35,7 @@
     }
     var steam = st.steam(g, b.x, b.y - w, w * 2.2);
     return { update: function (s) {
-      var on = !!s[c.key]; g.style.opacity = on ? 1 : 0;
+      var on = !!s[c.key]; g.vis = on;
       var t = c.tempKey ? Number(s[c.tempKey]) : 0; steam.style.opacity = (on && t >= 36) ? Math.min(1, (t - 35) / 7) : 0;
       path.setAttribute('stroke-width', w * (c.flowKey ? .45 + .55 * (Number(s[c.flowKey]) / 100) : 1));
     } };
@@ -54,7 +54,7 @@
       var m = sv('ellipse', { cx: bb.x + bb.w / 2, cy: bb.y + bb.h, rx: bb.w * .7, ry: bb.h * .12, fill: '#fff', opacity: .22 }, g);
       sv('animate', { attributeName: 'opacity', values: '.12;.3;.12', dur: '2.6s', repeatCount: 'indefinite' }, m);
     }
-    return { update: function (s) { g.style.opacity = s[c.key] ? 1 : 0; } };
+    return { update: function (s) { g.vis = !!s[c.key]; } };
   };
 
   /* Wasser steigt in einer Wanne */
@@ -62,8 +62,8 @@
     var id = st.clip(c.poly), g = st.g('fx-fill'); g.setAttribute('clip-path', 'url(#' + id + ')');
     var bb = st.bbox(c.poly), gid = st.uid('fg');
     var grad = sv('linearGradient', { id: gid, x1: 0, y1: 0, x2: 0, y2: 1 }, st.defs);
-    sv('stop', { offset: 0, 'stop-color': '#bfe6fb', 'stop-opacity': .5 }, grad);
-    sv('stop', { offset: 1, 'stop-color': '#4ea6d8', 'stop-opacity': .62 }, grad);
+    sv('stop', { offset: 0, 'stop-color': (c.colors || [])[0] || '#bfe6fb', 'stop-opacity': .5 }, grad);
+    sv('stop', { offset: 1, 'stop-color': (c.colors || [])[1] || '#4ea6d8', 'stop-opacity': .62 }, grad);
     var body = sv('path', { fill: 'url(#' + gid + ')' }, g);
     var wave = sv('path', { fill: 'none', stroke: '#fff', 'stroke-width': 1.4, opacity: .7 }, g);
     var steam = st.steam(g, bb.x + bb.w / 2, bb.y, bb.w * .5, 9);
@@ -78,7 +78,7 @@
     function loop(ts) { lvl += (target - lvl) * .06; draw(ts); if (Math.abs(target - lvl) > .002 || lvl > 0) raf = requestAnimationFrame(loop); else raf = null; }
     return { update: function (s) {
       target = clamp(Number(s[c.key]) / 100, 0, 1);
-      g.style.opacity = target > .01 ? 1 : 0;
+      g.vis = target > .01;
       steam.style.opacity = (target > .1 && c.tempKey && Number(s[c.tempKey]) >= 36) ? 1 : 0;
       if (!raf) raf = requestAnimationFrame(loop);
       if (c.onKey) {
@@ -96,8 +96,11 @@
     if (c.inside) inside.innerHTML = c.inside;
     slice.style.cssText = pos + 'background-image:url("' + st.src + '");background-size:' + (10000 / r[2]) + '% ' + (10000 / r[3]) + '%;background-position:' + (r[2] >= 100 ? 0 : r[0] / (100 - r[2]) * 100) + '% ' + (r[3] >= 100 ? 0 : r[1] / (100 - r[3]) * 100) + '%;' + (c.delay ? 'transition-delay:' + c.delay + 'ms;' : '');
     if (c.delay) inside.style.transitionDelay = c.delay + 'ms';
-    st.html.appendChild(inside); st.html.appendChild(slice);
-    return { update: function (s) { var on = !!s[c.key]; slice.classList.toggle('open', on); inside.classList.toggle('open', on); } };
+    if (c.inside || c.insideStyle) st.html.appendChild(inside); st.html.appendChild(slice);
+    return { update: function (s) {
+      var on = !!s[c.key]; slice.classList.toggle('open', on); inside.classList.toggle('open', on);
+      if (c.mode === 'spin') { var k = c.speedKey ? clamp(Number(s[c.speedKey]) / 12, .2, 1) : 1; slice.style.setProperty('--spd', (2.6 - 2.2 * k).toFixed(2) + 's'); }
+    } };
   };
 
   /* Lichtschein */
@@ -105,7 +108,7 @@
     var d = el('div', 'fx-glow');
     d.style.cssText = 'left:' + (c.at[0] - c.rx) + '%;top:' + (c.at[1] - c.ry) + '%;width:' + (c.rx * 2) + '%;height:' + (c.ry * 2) + '%;background:radial-gradient(ellipse at center,' + (c.color || '#ffe3b0') + ' 0%,' + (c.color || '#ffe3b0') + '66 28%,transparent 68%)';
     st.html.appendChild(d);
-    return { update: function (s) { var on = s[c.key] || (c.nightKey && s[c.nightKey]); d.style.opacity = on ? ((c.dimKey ? Number(s[c.dimKey]) / 100 : 1) * (c.max || 1)) : 0; } };
+    return { update: function (s) { var on = s[c.key] || (c.nightKey && s[c.nightKey]); var k = c.dimFn ? clamp(c.dimFn(s), 0, 1) : (c.dimKey ? Number(s[c.dimKey]) / 100 : 1); d.style.opacity = on ? (k * (c.max || 1)) : 0; } };
   };
 
   /* Abend hinter dem Fenster */
@@ -124,7 +127,7 @@
     }
     sv('circle', { cx: bb.x + bb.w * (c.moon ? c.moon[0] : .78), cy: bb.y + bb.h * (c.moon ? c.moon[1] : .2), r: 7, fill: '#fff6d8', opacity: .95 }, g);
     sv('circle', { cx: bb.x + bb.w * (c.moon ? c.moon[0] : .78), cy: bb.y + bb.h * (c.moon ? c.moon[1] : .2), r: 14, fill: '#fff6d8', opacity: .18 }, g);
-    return { update: function (s) { var on = !!s[c.key]; g.style.opacity = on ? 1 : 0; st.stage.classList.toggle('fx-isnight', on); } };
+    return { update: function (s) { var on = !!s[c.key]; g.vis = on; st.stage.classList.toggle('fx-isnight', on); } };
   };
 
   /* Farbe über einer Fläche, Luminanz bleibt */
@@ -168,7 +171,7 @@
     });
     return { update: function (s) {
       var on = !!s[c.key], k = c.sizeKey ? clamp(Number(s[c.sizeKey]) / 9, .25, 1) : 1;
-      g.style.opacity = on ? 1 : 0;
+      g.vis = on;
       rings.forEach(function (r) { r.g.setAttribute('transform', 'translate(' + r.p.x + ' ' + r.p.y + ') scale(' + (.6 + .7 * k) + ')'); });
     } };
   };
@@ -196,7 +199,7 @@
       sv('animate', { attributeName: 'opacity', values: '0;.55;0', dur: dur + 's', begin: b, repeatCount: 'indefinite' }, ci);
       sv('animate', { attributeName: 'r', from: 2, to: 11, dur: dur + 's', begin: b, repeatCount: 'indefinite' }, ci);
     }
-    return { update: function (s) { g.style.opacity = s[c.key] ? 1 : 0; } };
+    return { update: function (s) { g.vis = !!s[c.key]; } };
   };
 
   /* Sicherungsreihen: aus = rot */
@@ -225,7 +228,7 @@
       var w = sv('polyline', { points: pts, fill: 'none', stroke: c.color || '#4fe3ff', 'stroke-width': 2, 'stroke-dasharray': '5 11', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
       sv('animate', { attributeName: 'stroke-dashoffset', from: 0, to: -32, dur: (0.7 + i * .08) + 's', repeatCount: 'indefinite' }, w);
     });
-    return { update: function (s) { g.style.opacity = s[c.key] ? 1 : 0; } };
+    return { update: function (s) { g.vis = !!s[c.key]; } };
   };
 
   /* Aufkleber, Schild im Bild */
@@ -244,8 +247,76 @@
       var l = sv('polyline', { points: pts, fill: 'none', stroke: '#6fb6ff', 'stroke-width': 4, opacity: .85, 'stroke-linecap': 'butt' }, g);
       lines.push(l);
     });
-    requestAnimationFrame(function () { lines.forEach(function (l) { var L = l.getTotalLength(); l.style.strokeDasharray = L; l.style.strokeDashoffset = L; }); });
-    return { update: function (s) { var on = !!s[c.key]; g.style.opacity = on ? 1 : 0; lines.forEach(function (l) { l.style.strokeDashoffset = on ? 0 : l.style.strokeDasharray; }); } };
+    return { update: function (s) {
+      var on = !!s[c.key]; g.vis = on;
+      requestAnimationFrame(function () { lines.forEach(function (l) {
+        if (!l._L && on) { l._L = l.getTotalLength(); l.style.strokeDasharray = l._L; l.style.strokeDashoffset = l._L; void l.getBoundingClientRect(); }
+        if (l._L) l.style.strokeDashoffset = on ? 0 : l._L;
+      }); });
+    } };
+  };
+
+  /* Schallwellen oder Luftbewegung: Ringe, die sich ausbreiten */
+  FX.rings = function (st, c) {
+    var g = st.g('fx-rings'), p = st.p(c.at);
+    for (var i = 0; i < (c.n || 4); i++) {
+      var e = sv('ellipse', { cx: p.x, cy: p.y, rx: 4, ry: 2, fill: 'none', stroke: c.color || '#fff', 'stroke-width': 1.6, opacity: 0 }, g), b = (i * .7) + 's';
+      sv('animate', { attributeName: 'rx', from: 6, to: c.r || 160, dur: '2.8s', begin: b, repeatCount: 'indefinite' }, e);
+      sv('animate', { attributeName: 'ry', from: 3, to: (c.r || 160) * .55, dur: '2.8s', begin: b, repeatCount: 'indefinite' }, e);
+      sv('animate', { attributeName: 'opacity', values: '.8;0', dur: '2.8s', begin: b, repeatCount: 'indefinite' }, e);
+    }
+    return { update: function (s) { g.vis = !!s[c.key]; } };
+  };
+
+  /* Dampf oder Nebel an einer Stelle */
+  FX.steamfx = function (st, c) {
+    var g = st.g('fx-steam'), p = st.p(c.at);
+    st.steam(g, p.x, p.y, c.spread || 30, c.n || 10).style.opacity = 1;
+    return { update: function (s) { g.vis = !!s[c.key]; } };
+  };
+
+  /* Zeiger auf einem Manometer */
+  FX.needle = function (st, c) {
+    var p = st.p(c.at), g = sv('g', { transform: 'translate(' + p.x + ' ' + p.y + ')' }, st.svg), r = c.r || 9, cur = c.start || 0, target = cur, raf = null;
+    sv('circle', { cx: 0, cy: 0, r: r + 1.5, fill: 'none', stroke: '#fff', 'stroke-width': .8, opacity: .5 }, g);
+    var n = sv('line', { x1: 0, y1: 0, x2: 0, y2: -r, stroke: '#ff3b30', 'stroke-width': 1.4, 'stroke-linecap': 'round' }, g);
+    sv('circle', { cx: 0, cy: 0, r: 1.4, fill: '#fff' }, g);
+    function loop() { cur += (target - cur) * .12; n.setAttribute('transform', 'rotate(' + cur + ')'); if (Math.abs(target - cur) > .2) raf = requestAnimationFrame(loop); else raf = null; }
+    return { update: function (s) { var v = typeof c.angle === 'function' ? c.angle(s) : Number(s[c.key]); target = v; if (!raf) raf = requestAnimationFrame(loop); } };
+  };
+
+  /* Blasen in einem Behälter, kurz nach einem Auslöser */
+  FX.bubbles = function (st, c) {
+    var id = st.clip(c.poly), g = st.g('fx-bubbles'); g.setAttribute('clip-path', 'url(#' + id + ')');
+    var bb = st.bbox(c.poly), last = 0;
+    for (var i = 0; i < (c.n || 26); i++) {
+      var x = rnd(bb.x + bb.w * .15, bb.x + bb.w * .85), dur = rnd(1.2, 2.2), b = (-rnd(0, 2)) + 's';
+      var ci = sv('circle', { cx: x, cy: bb.y + bb.h, r: rnd(1.5, 4), fill: '#fff', opacity: 0 }, g);
+      sv('animateTransform', { attributeName: 'transform', type: 'translate', from: '0 0', to: rnd(-8, 8) + ' ' + (-bb.h * rnd(.6, 1)), dur: dur + 's', begin: b, repeatCount: 'indefinite' }, ci);
+      sv('animate', { attributeName: 'opacity', values: '0;.75;0', dur: dur + 's', begin: b, repeatCount: 'indefinite' }, ci);
+    }
+    sv('rect', { x: bb.x, y: bb.y, width: bb.w, height: bb.h, fill: '#9fd8ff', opacity: .18 }, g);
+    return { update: function (s) {
+      if (s[c.key] && s[c.key] !== last) { last = s[c.key]; g.vis = true; clearTimeout(g._off); g._off = setTimeout(function () { g.vis = false; }, c.dur || 4200); }
+    } };
+  };
+
+  /* Auto fährt in den Carport */
+  FX.car = function (st, c) {
+    var d = el('div', 'fx-car', '<svg viewBox="0 0 200 90" preserveAspectRatio="xMidYMid meet"><path d="M14 62 L24 38 Q30 26 44 24 L116 22 Q136 22 150 36 L186 46 Q196 50 194 62 L190 66 L14 66 Z" fill="' + (c.color || '#2b3340') + '"/><path d="M48 30 L112 28 Q128 28 138 40 L52 42 Q44 40 48 30 Z" fill="#9fc7e8" opacity=".9"/><rect x="60" y="43" width="78" height="3" fill="#1b212b" opacity=".5"/><g class="wheel"><circle cx="52" cy="66" r="13" fill="#1b1f26"/><circle cx="52" cy="66" r="6" fill="#aab3bd"/><path d="M52 60v12M46 66h12" stroke="#1b1f26" stroke-width="2"/></g><g class="wheel"><circle cx="152" cy="66" r="13" fill="#1b1f26"/><circle cx="152" cy="66" r="6" fill="#aab3bd"/><path d="M152 60v12M146 66h12" stroke="#1b1f26" stroke-width="2"/></g><rect x="186" y="50" width="6" height="5" rx="1" fill="#ffd57a"/><rect x="14" y="52" width="6" height="5" rx="1" fill="#ff5a4a"/></svg>');
+    d.style.cssText = 'left:' + c.rect[0] + '%;top:' + c.rect[1] + '%;width:' + c.rect[2] + '%;';
+    st.html.appendChild(d);
+    return { update: function (s) { d.classList.toggle('in', !!s[c.key]); } };
+  };
+
+  /* Ein Zustand zieht andere nach, z. B. Abend setzt den Speicherstand */
+  FX.link = function (st, c) {
+    var last;
+    return { update: function (s) {
+      var v = !!s[c.key]; if (v === last) return; last = v;
+      var set = v ? c.on : c.off; if (!set) return;
+      setTimeout(function () { Object.assign(st.state, set); st.update(); }, c.delay || 300);
+    } };
   };
 
   /* ---------------- Inhalte für geöffnete Laden und Schränke ---------------- */
@@ -255,6 +326,8 @@
     cutlery: '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><rect x="4" y="6" width="92" height="28" rx="3" fill="#2f2a26"/><rect x="8" y="9" width="20" height="22" rx="2" fill="#3b352f"/><rect x="31" y="9" width="20" height="22" rx="2" fill="#3b352f"/><rect x="54" y="9" width="20" height="22" rx="2" fill="#3b352f"/><rect x="77" y="9" width="16" height="22" rx="2" fill="#3b352f"/><path d="M12 12v16M16 12v16M20 12v16M36 12v16M40 12v16M60 13v14M64 13v14M68 13v14M82 12v16" stroke="#d9d9d9" stroke-width="1.6"/></svg>',
     pots: '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><rect x="6" y="14" width="26" height="20" rx="3" fill="#9aa1a8"/><rect x="36" y="10" width="20" height="24" rx="3" fill="#b8bec4"/><rect x="60" y="16" width="34" height="18" rx="3" fill="#7d8790"/><rect x="2" y="10" width="34" height="4" rx="2" fill="#c9cfd4"/></svg>',
     cabinet: '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect x="0" y="0" width="100" height="100" fill="#1f2a33"/><rect x="0" y="30" width="100" height="2" fill="#e3c9a3"/><rect x="0" y="62" width="100" height="2" fill="#e3c9a3"/><rect x="0" y="94" width="100" height="2" fill="#e3c9a3"/><rect x="8" y="12" width="9" height="18" rx="2" fill="#d7e3ea"/><rect x="20" y="8" width="7" height="22" rx="3" fill="#8aa4b8"/><rect x="32" y="16" width="14" height="14" rx="2" fill="#f1e3cf"/><rect x="60" y="6" width="10" height="24" rx="2" fill="#c7d2d9"/><rect x="74" y="14" width="18" height="16" rx="2" fill="#e8e1d6"/><rect x="10" y="44" width="22" height="18" rx="2" fill="#f4f1ec"/><rect x="36" y="40" width="9" height="22" rx="3" fill="#b0c3cf"/><rect x="50" y="48" width="16" height="14" rx="2" fill="#dfd5c6"/><rect x="70" y="42" width="8" height="20" rx="3" fill="#7f9db0"/><rect x="82" y="46" width="10" height="16" rx="2" fill="#efe7da"/><rect x="8" y="72" width="30" height="22" rx="2" fill="#cfd8dd"/><rect x="42" y="76" width="22" height="18" rx="2" fill="#e5dccf"/><rect x="68" y="70" width="24" height="24" rx="2" fill="#aebfc9"/><rect x="0" y="0" width="100" height="3" fill="#fff4d6" opacity=".9"/></svg>',
+    wardrobe: '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect width="100" height="100" fill="#2a2f36"/><rect x="6" y="8" width="88" height="2" fill="#c9ced6"/><g fill="#8aa4b8"><rect x="10" y="10" width="9" height="34" rx="2"/><rect x="22" y="10" width="9" height="36" rx="2" fill="#d9d2c7"/><rect x="34" y="10" width="9" height="33" rx="2" fill="#5f6c7a"/><rect x="46" y="10" width="9" height="37" rx="2" fill="#b9c7d1"/><rect x="58" y="10" width="9" height="35" rx="2" fill="#8c7b6a"/><rect x="70" y="10" width="9" height="34" rx="2" fill="#e8e1d6"/><rect x="82" y="10" width="8" height="36" rx="2" fill="#6f8aa0"/></g><rect x="6" y="56" width="88" height="1.5" fill="#e3c9a3"/><rect x="6" y="76" width="88" height="1.5" fill="#e3c9a3"/><rect x="10" y="60" width="24" height="14" rx="1.5" fill="#d7dde3"/><rect x="38" y="60" width="24" height="14" rx="1.5" fill="#c9bfae"/><rect x="66" y="60" width="24" height="14" rx="1.5" fill="#aebfc9"/><rect x="10" y="80" width="80" height="14" rx="1.5" fill="#3b424a"/></svg>',
+    shelves: '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect width="100" height="100" fill="#2a2f36"/><rect x="0" y="24" width="100" height="1.5" fill="#e3c9a3"/><rect x="0" y="49" width="100" height="1.5" fill="#e3c9a3"/><rect x="0" y="74" width="100" height="1.5" fill="#e3c9a3"/><rect x="12" y="8" width="76" height="14" rx="2" fill="#d7dde3"/><rect x="12" y="33" width="76" height="14" rx="2" fill="#c9bfae"/><rect x="12" y="58" width="34" height="14" rx="2" fill="#aebfc9"/><rect x="52" y="58" width="36" height="14" rx="2" fill="#e8e1d6"/><rect x="12" y="82" width="76" height="12" rx="2" fill="#8c7b6a"/></svg>',
     window: '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><rect width="100" height="100" fill="#2b2420"/><rect x="10" y="40" width="80" height="60" fill="#3d332c"/><rect x="0" y="0" width="100" height="100" fill="url(#g)"/><ellipse cx="50" cy="55" rx="40" ry="30" fill="#ffd9a0" opacity=".35"/></svg>'
   };
 
@@ -434,6 +507,145 @@
         { id: 'kamin', at: [85.5, 6], zoom: [84, 9, 2.3], kicker: 'Kamin', title: 'Kaminverkleidung in Blech', text: 'Verblecht mit Alu in Dachfarbe, Regenhaube drauf. Kein Putz, der abplatzt.',
           options: [{ type: 'toggle', key: 'smoke', label: 'Ofen heizt' }], auto: [['smoke', true, 500]] }
       ]
+    },
+    {
+      id: 'waermepumpe', test: /installateur\/waermepumpe\.jpg|musterbetrieb\/img\/waermepumpe\.jpg|drack-installationen\/img\/waermepumpe\.jpg/, ar: 1168 / 880, priority: 1,
+      initial: { run: false, kw: 8, flow: false, defrost: false, sound: false, dist: 3 },
+      effects: [
+        ['slice', { key: 'run', mode: 'spin', speedKey: 'kw', rect: [53.8, 40.2, 16.9, 22.8] }],
+        ['rings', { key: 'sound', at: [62, 52], r: 220, color: '#ffffff', n: 4 }],
+        ['steamfx', { key: 'defrost', at: [62, 48], spread: 90, n: 14 }],
+        ['wires', { key: 'flow', color: '#ff9f5a', lines: [[[88.5, 56.5], [95.5, 56.5], [95.5, 66]], [[88.5, 60.5], [93, 60.5], [93, 67]]] }]
+      ],
+      hotspots: [
+        { id: 'ventilator', at: [62.2, 51.7], zoom: [68, 50, 1.9], kicker: 'Wärmepumpe', title: 'Luft-Wasser-Wärmepumpe, Monoblock', text: 'Außen steht nur das Gerät, innen der Speicher. Starten Sie sie, der Ventilator dreht, je nach Leistung schneller.',
+          options: [{ type: 'toggle', key: 'run', label: 'Anlage läuft' }, { type: 'range', key: 'kw', label: 'Leistung', min: 2, max: 12, unit: ' kW' }, { type: 'toggle', key: 'defrost', label: 'Abtauen im Winter' }],
+          auto: [['run', true, 500]], callouts: [{ at: [75, 38], to: [62, 26], text: 'Modulierend, 2 bis 12 kW' }],
+          info: function (s) { return s.run ? s.kw + ' kW, ca. ' + Math.round(33 + s.kw * 1.2) + ' dB(A) in 3 m Abstand' : 'Anlage aus'; } },
+        { id: 'leise', at: [40, 62], zoom: [50, 58, 1.5], kicker: 'Schall', title: 'So leise wie ein Kühlschrank', text: 'Nachts läuft sie im Flüstermodus. Die Ringe zeigen, wie weit man sie hört.',
+          options: [{ type: 'toggle', key: 'sound', label: 'Schall zeigen' }, { type: 'range', key: 'dist', label: 'Abstand zum Nachbarn', min: 1, max: 15, unit: ' m' }],
+          auto: [['sound', true, 500]], info: function (s) { return 'Beim Nachbarn ca. ' + Math.max(20, Math.round(50 - 20 * Math.log10(s.dist))) + ' dB(A), Grenzwert nachts 35 dB(A)'; } },
+        { id: 'anschluss', at: [91, 58], zoom: [86, 58, 2.3], kicker: 'Hydraulik', title: 'Anschluss ins Haus, gedämmt', text: 'Zwei gedämmte Leitungen durch die Wand, innen Pufferspeicher. Keine Frostgefahr, weil ständig Wasser bewegt wird.',
+          options: [{ type: 'toggle', key: 'flow', label: 'Wärmefluss zeigen' }], auto: [['flow', true, 500]],
+          callouts: [{ at: [92, 52], to: [80, 44], text: 'Vorlauf 35 °C, Rücklauf 28 °C' }] },
+        { id: 'fundament', at: [70, 80], zoom: [68, 78, 1.8], kicker: 'Aufstellung', title: 'Kiesbett und Schwingungsdämpfer', text: 'Steht auf Gummipuffern, Kondenswasser versickert im Kies. Kein Betonsockel, der Schall ins Haus trägt.',
+          callouts: [{ at: [62, 70], to: [50, 66], text: 'Gummipuffer gegen Körperschall' }, { at: [76, 88], to: [86, 94], text: 'Kiesbett, Kondensat versickert' }] }
+      ]
+    },
+    {
+      id: 'pool', test: /installateur\/pool\.jpg/, ar: 1168 / 880, priority: 1,
+      initial: { pump: false, backwash: 0, temp: 26, mode: 'filtern', press: 0 },
+      effects: [
+        ['wires', { key: 'pump', color: '#dff4ff', lines: [[[36, 53], [36, 31], [14, 31]], [[46, 52], [46, 48], [58, 48], [58, 34], [90, 34]], [[84, 57], [84, 74], [96, 74], [96, 84]], [[64, 42], [64, 55]]] }],
+        ['bubbles', { key: 'backwash', poly: [[7, 40], [14, 34], [26, 33], [34, 38], [36, 50], [34, 68], [26, 78], [14, 78], [7, 68], [5, 52]], n: 30, dur: 4500 }],
+        ['needle', { at: [21.8, 23.9], r: 8.5, start: -120, angle: function (s) { var m = { filtern: -20, rueckspuelen: 70, nachspuelen: 20, zirkulieren: -60 }; return s.pump ? (m[s.mode] != null ? m[s.mode] : -20) + (s.backwash ? 40 : 0) : -120; } }],
+        ['glow', { key: 'temp', at: [72, 58], rx: 10, ry: 16, color: '#ff9a4a', max: .65, dimFn: function (s) { return (s.temp - 22) / 10; } }],
+        ['link', { key: 'pump', on: { press: 1 }, off: { press: 0 } }]
+      ],
+      hotspots: [
+        { id: 'pumpe', at: [43, 66], zoom: [45, 62, 2], kicker: 'Umwälzung', title: 'Frequenzgeregelte Pumpe', text: 'Läuft leise mit kleiner Drehzahl, braucht ein Drittel vom Strom einer alten Pumpe. Starten Sie, das Wasser fließt durch die Leitungen.',
+          options: [{ type: 'toggle', key: 'pump', label: 'Pumpe läuft' }], auto: [['pump', true, 500]],
+          callouts: [{ at: [44, 61], to: [56, 70], text: 'Frequenzgeregelt, 0,55 kW' }], info: function (s) { return s.pump ? '12 m³/h, Beckeninhalt in 4 Stunden einmal durch' : 'Pumpe aus'; } },
+        { id: 'filter', at: [20, 52], zoom: [22, 46, 1.7], kicker: 'Filter', title: 'Sandfilterkessel, 600 mm', text: 'Rückspülen heißt: Wasser fließt kurz andersherum und spült den Schmutz aus dem Sand. Drücken Sie.',
+          options: [{ type: 'buttons', label: 'Wartung', values: [{ label: 'Rückspülen', set: function () { return { backwash: Date.now(), pump: true }; } }] }], auto: [['pump', true, 300], ['backwash', 'auto', 900]],
+          info: function (s) { return s.backwash && Date.now() - s.backwash < 4500 ? 'Rückspülung läuft, Druck steigt' : 'Filterbetrieb'; } },
+        { id: 'ventil', at: [24, 24], zoom: [24, 27, 2.4], kicker: 'Steuerung', title: 'Mehrwegeventil mit Manometer', text: 'Eine Stellung für Filtern, Rückspülen, Nachspülen und Zirkulieren. Der Zeiger zeigt den Druck.',
+          options: [{ type: 'choice', key: 'mode', label: 'Stellung', values: [['filtern', 'Filtern'], ['rueckspuelen', 'Rückspülen'], ['nachspuelen', 'Nachspülen'], ['zirkulieren', 'Zirkulieren']] }], auto: [['pump', true, 300], ['mode', 'rueckspuelen', 1200], ['mode', 'filtern', 2600]],
+          info: function (s) { var m = { filtern: '0,8 bar, normal', rueckspuelen: '1,6 bar, spült', nachspuelen: '1,1 bar', zirkulieren: '0,4 bar, ohne Filter' }; return s.pump ? m[s.mode] : 'Pumpe aus, 0 bar'; } },
+        { id: 'tauscher', at: [72, 58], zoom: [74, 55, 2], kicker: 'Heizung', title: 'Plattenwärmetauscher', text: 'Die Heizung des Hauses wärmt das Beckenwasser, ohne dass sich die Kreisläufe mischen. Schieben Sie die Temperatur.',
+          options: [{ type: 'range', key: 'temp', label: 'Beckenwasser', min: 20, max: 32, unit: ' °C' }], auto: [['temp', 30, 500]],
+          info: function (s) { return s.temp >= 28 ? 'Warm, ' + s.temp + ' °C' : 'Sportlich, ' + s.temp + ' °C'; } }
+      ]
+    },
+    {
+      id: 'pv', test: /elektriker\/pv\.jpg/, ar: 1168 / 880, priority: 1,
+      initial: { sun: false, kwp: 8, level: 60, night: false, disp: false },
+      effects: [
+        ['wires', { key: 'sun', color: '#ffd45a', lines: [[[20, 43], [20, 78], [42, 78], [42, 72]], [[22, 43], [22, 76]], [[30, 43], [30, 73], [42, 73]]] }],
+        ['glow', { key: 'disp', at: [27.4, 38], rx: 5, ry: 3.5, color: '#9fe0ff', max: .9, nightKey: 'sun' }],
+        ['fill', { key: 'level', poly: [[42.6, 14.6], [65.6, 13.2], [66, 73.8], [42.6, 72.6]], top: 14.5, bottom: 73, colors: ['#9ff0b0', '#2bb85a'] }],
+        ['night', { key: 'night', poly: [[85.6, 9.5], [100, 9.5], [100, 42], [85.6, 42]], moon: [.65, .25] }],
+        ['glow', { key: 'night', at: [30, 50], rx: 30, ry: 30, color: '#ffe3b0', max: .25 }],
+        ['link', { key: 'night', on: { level: 18, sun: false }, off: { level: 85 } }]
+      ],
+      hotspots: [
+        { id: 'wechselrichter', at: [26, 24], zoom: [28, 32, 2], kicker: 'Wechselrichter', title: 'Hybrid-Wechselrichter', text: 'Macht aus Dachstrom Hausstrom und lädt den Speicher. Lassen Sie die Sonne scheinen, der Strom fließt.',
+          options: [{ type: 'toggle', key: 'sun', label: 'Sonne scheint' }, { type: 'range', key: 'kwp', label: 'Anlagengröße', min: 4, max: 15, unit: ' kWp' }], auto: [['sun', true, 500], ['disp', true, 600]],
+          callouts: [{ at: [36, 20], to: [48, 10], text: '10 kW, Notstromfähig' }], info: function (s) { return s.sun ? 'Jetzt ' + (s.kwp * .72).toFixed(1) + ' kW, heute ca. ' + Math.round(s.kwp * 3.6) + ' kWh' : 'Keine Erzeugung'; } },
+        { id: 'speicher', at: [54, 44], zoom: [54, 44, 1.7], kicker: 'Speicher', title: 'Batteriespeicher, 10 kWh', text: 'Tagsüber wird er voll, abends versorgt er Herd, Licht und Fernseher. Der Füllstand zeigt es grün.',
+          options: [{ type: 'range', key: 'level', label: 'Füllstand', min: 0, max: 100, unit: ' %' }, { type: 'toggle', key: 'night', label: 'Abend' }], auto: [['level', 95, 500]],
+          info: function (s) { return Math.round(s.level / 10) + ' kWh gespeichert, reicht ca. ' + Math.round(s.level / 10 * 2.5) + ' Stunden'; } },
+        { id: 'fenster', at: [93, 25], zoom: [88, 30, 1.8], kicker: 'Abend', title: 'Nach Sonnenuntergang', text: 'Keine Sonne, der Speicher übernimmt. Erst wenn er leer ist, kommt Strom aus dem Netz.',
+          options: [{ type: 'toggle', key: 'night', label: 'Abend' }], auto: [['night', true, 500]],
+          callouts: [{ at: [86, 30], to: [76, 22], text: 'Speicher versorgt das Haus' }] }
+      ]
+    },
+    {
+      id: 'fassade', test: /maler\/fassade\.jpg/, ar: 1168 / 880, priority: 1,
+      initial: { wall: 'weiss', shut: 'holz', lamp: false },
+      effects: [
+        ['tint', { key: 'wall', poly: [[17, 37], [37, 9.5], [68.5, 29], [68.5, 80], [17, 80]], holes: [[[22, 29], [38, 29], [38, 44], [22, 44]], [[41, 26], [60, 26], [60, 43], [41, 43]], [[22, 55], [38, 55], [38, 72], [22, 72]], [[41, 55], [60, 55], [60, 72], [41, 72]]], values: [['weiss', 'Weiß', null], ['creme', 'Creme', '#efe4c8', 'multiply', .92], ['sand', 'Sand', '#e3cfa6', 'multiply', .9], ['grau', 'Hellgrau', '#c3c6ca', 'multiply', .9], ['salbei', 'Salbei', '#b8c2a6', 'multiply', .9], ['graphit', 'Graphit', '#6a6e74', 'multiply', .88]] }],
+        ['tint', { key: 'shut', poly: [[22.3, 30], [26.5, 30], [26.5, 43.5], [22.3, 43.5]], holes: [[[33.5, 30], [37.7, 30], [37.7, 43.5], [33.5, 43.5]], [[41, 27], [45.5, 27], [45.5, 42.5], [41, 42.5]], [[54.5, 27], [59, 27], [59, 42.5], [54.5, 42.5]], [[22.3, 56], [26.5, 56], [26.5, 71], [22.3, 71]], [[33.5, 56], [37.7, 56], [37.7, 71], [33.5, 71]], [[41, 56], [45.5, 56], [45.5, 71], [41, 71]], [[54.5, 56], [59, 56], [59, 71], [54.5, 71]]], values: [['holz', 'Holz natur', null], ['anthrazit', 'Anthrazit', '#2f3338', 'multiply', .85], ['gruen', 'Tannengrün', '#3f5a3c', 'color', 1], ['blau', 'Taubenblau', '#4a6a8e', 'color', 1], ['weiss', 'Weiß', '#f2f0ea', 'screen', .8]] }],
+        ['glow', { key: 'lamp', at: [74.5, 61], rx: 9, ry: 8, color: '#ffe2b0', max: .95 }]
+      ],
+      hotspots: [
+        { id: 'fassade', at: [50, 48], zoom: [45, 45, 1.4], kicker: 'Fassade', title: 'Fassadenfarbe wählen', text: 'Silikatfarbe, diffusionsoffen, hält 15 Jahre. Tippen Sie durch die Töne, das Haus zeigt sie sofort.',
+          options: [{ type: 'swatch', key: 'wall', label: 'Farbton', values: [['weiss', 'Weiß', '#f4f3ef'], ['creme', 'Creme', '#efe4c8'], ['sand', 'Sand', '#e3cfa6'], ['grau', 'Hellgrau', '#c3c6ca'], ['salbei', 'Salbei', '#b8c2a6'], ['graphit', 'Graphit', '#6a6e74']] }],
+          auto: [['wall', 'sand', 600], ['wall', 'grau', 1900], ['wall', 'weiss', 3200]] },
+        { id: 'laeden', at: [30, 36], zoom: [32, 38, 2], kicker: 'Fensterläden', title: 'Fensterläden lackieren', text: 'Holz geschliffen, grundiert, zweimal lackiert. Klassisch in Holz oder in Farbe.',
+          options: [{ type: 'swatch', key: 'shut', label: 'Farbe', values: [['holz', 'Holz natur', '#b7773a'], ['anthrazit', 'Anthrazit', '#2f3338'], ['gruen', 'Tannengrün', '#3f5a3c'], ['blau', 'Taubenblau', '#4a6a8e'], ['weiss', 'Weiß', '#f2f0ea']] }],
+          auto: [['shut', 'anthrazit', 600], ['shut', 'gruen', 1900], ['shut', 'holz', 3200]], callouts: [{ at: [26.5, 32], to: [22, 22], text: 'Beschläge bleiben, nur Lack neu' }] },
+        { id: 'eingang', at: [80, 60], zoom: [78, 58, 1.9], kicker: 'Eingang', title: 'Vordach und Haustür', text: 'Holz am Vordach geölt, Sockel mit Sockelputz gegen Spritzwasser. Lampe an, und das Haus wirkt am Abend.',
+          options: [{ type: 'toggle', key: 'lamp', label: 'Außenlicht' }], auto: [['lamp', true, 500]],
+          callouts: [{ at: [86, 76], to: [92, 84], text: 'Sockelputz, 30 cm, wasserabweisend' }] }
+      ]
+    },
+    {
+      id: 'schrank', test: /tischler\/schrank\.jpg/, ar: 1168 / 880, priority: 1,
+      initial: { doors: false, wood: 'eiche', lamp: false, night: false },
+      effects: [
+        ['slice', { key: 'doors', mode: 'doorL', rect: [25.3, 0, 14.5, 91], inside: INSIDE.wardrobe }],
+        ['slice', { key: 'doors', mode: 'doorR', rect: [61.2, 30.7, 8.1, 48.8], inside: INSIDE.shelves, delay: 250 }],
+        ['tint', { key: 'wood', poly: [[6, 0], [40, 0], [76, 48], [76, 75], [6, 92]], values: [['eiche', 'Eiche hell', null], ['nuss', 'Nussbaum', '#5a3a24', 'multiply', .8], ['weiss', 'Weiß matt', '#f1efe9', 'screen', .85], ['schwarz', 'Schwarz', '#2a2d31', 'multiply', .9], ['gruen', 'Salbeigrün', '#5e6b58', 'color', 1]] }],
+        ['glow', { key: 'lamp', at: [93.3, 57], rx: 9, ry: 8, color: '#ffe2b0', nightKey: 'night', max: .95 }],
+        ['night', { key: 'night', poly: [[93, 26], [100, 26], [100, 56], [93, 56]], moon: [.5, .25] }]
+      ],
+      hotspots: [
+        { id: 'tueren', at: [32, 45], zoom: [34, 45, 1.6], kicker: 'Einbauschrank', title: 'Türen ohne Griffe, Tip-on', text: 'Antippen, und die Tür springt auf. Innen Kleiderstange, Fächer und Laden, alles auf Maß.',
+          options: [{ type: 'toggle', key: 'doors', label: 'Türen öffnen' }], auto: [['doors', true, 500]],
+          callouts: [{ at: [46, 20], to: [52, 10], text: 'Tip-on, kein Griff nötig' }] },
+        { id: 'holz', at: [18, 70], zoom: [30, 55, 1.4], kicker: 'Oberfläche', title: 'Furnier oder Lack', text: 'Eiche furniert, geölt. Oder lackiert in Ihrer Farbe. Die Front zeigt es.',
+          options: [{ type: 'swatch', key: 'wood', label: 'Oberfläche', values: [['eiche', 'Eiche hell', '#d9c3a0'], ['nuss', 'Nussbaum', '#6b4a2e'], ['weiss', 'Weiß matt', '#f1efe9'], ['schwarz', 'Schwarz', '#2a2d31'], ['gruen', 'Salbeigrün', '#7d8a76']] }],
+          auto: [['wood', 'nuss', 600], ['wood', 'weiss', 1900], ['wood', 'eiche', 3200]] },
+        { id: 'schraege', at: [66, 28], zoom: [62, 32, 1.8], kicker: 'Maßarbeit', title: 'Millimetergenau an die Dachschräge', text: 'Jede Tür folgt der Schräge, kein Spalt, kein toter Winkel. Aufgemessen mit Laser, gefertigt in der Werkstatt.',
+          callouts: [{ at: [70, 36], to: [80, 26], text: 'Schräge 32°, Fuge 2 mm' }, { at: [52, 60], to: [60, 66], text: 'Sockel bündig zum Boden' }] },
+        { id: 'licht', at: [94, 55], zoom: [86, 50, 1.8], kicker: 'Abend', title: 'Nachtkästchen mit Leuchte', text: 'Das Kästchen passend zum Schrank. Abends warmes Licht, die Front wirkt ruhig.',
+          options: [{ type: 'toggle', key: 'lamp', label: 'Leuchte' }, { type: 'toggle', key: 'night', label: 'Abend' }], auto: [['night', true, 400], ['lamp', true, 900]] }
+      ]
+    },
+    {
+      id: 'carport', test: /dach\/carport\.jpg/, ar: 1168 / 880, priority: 1,
+      initial: { wood: 'laerche', car: false, led: false, rain: false },
+      effects: [
+        ['tint', { key: 'wood', poly: [[18.5, 19.5], [80, 23.5], [80, 28.5], [18.5, 26]], holes: [[[19.7, 26], [22.7, 26], [22.7, 72.7], [19.7, 72.7]], [[75, 33], [77.5, 33], [77.5, 70.5], [75, 70.5]], [[22.7, 38], [35, 41.5], [35, 66], [22.7, 71]], [[35, 40], [63, 40], [63, 60], [35, 60]], [[22.7, 26], [75, 28.5], [63, 40], [35, 40]]], values: [['laerche', 'Lärche natur', null], ['grau', 'Silbergrau', '#8f8f8b', 'color', 1], ['anthrazit', 'Anthrazit', '#3a3d42', 'multiply', .9], ['weiss', 'Weiß', '#efede8', 'screen', .85], ['nuss', 'Dunkel geölt', '#5c3d27', 'multiply', .85]] }],
+        ['car', { key: 'car', rect: [33, 44, 34] }],
+        ['glow', { key: 'led', at: [49, 31], rx: 26, ry: 9, color: '#ffe0b0', max: .85 }],
+        ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 60, len: 26, slant: -2, mist: false }],
+        ['wires', { key: 'rain', color: '#bfe8ff', lines: [[[66.5, 10], [66.5, 16], [68, 17], [68, 60]]] }]
+      ],
+      hotspots: [
+        { id: 'holz', at: [48, 20], zoom: [50, 25, 1.6], kicker: 'Holz', title: 'Lärche, sichtbar verschraubt', text: 'Lärche vergraut von selbst silbrig. Oder geölt, lasiert, gestrichen. Tippen Sie durch.',
+          options: [{ type: 'swatch', key: 'wood', label: 'Oberfläche', values: [['laerche', 'Lärche natur', '#c89a63'], ['grau', 'Silbergrau', '#8f8f8b'], ['anthrazit', 'Anthrazit', '#3a3d42'], ['weiss', 'Weiß', '#efede8'], ['nuss', 'Dunkel geölt', '#5c3d27']] }],
+          auto: [['wood', 'grau', 600], ['wood', 'anthrazit', 1900], ['wood', 'laerche', 3200]] },
+        { id: 'auto', at: [50, 64], zoom: [50, 55, 1.4], kicker: 'Platz', title: 'Platz für ein Auto und die Räder', text: '3 × 6 Meter, mit Sichtschutz zum Nachbarn. Fahren Sie ein.',
+          options: [{ type: 'toggle', key: 'car', label: 'Einparken' }], auto: [['car', true, 400]],
+          callouts: [{ at: [29, 55], to: [20, 48], text: 'Sichtschutz, Lärchenlatten' }] },
+        { id: 'licht', at: [50, 31], zoom: [50, 35, 1.7], kicker: 'Licht', title: 'LED-Leiste unter dem Dach', text: 'Mit Bewegungsmelder. Abends leuchtet der Stellplatz, nicht der ganze Garten.',
+          options: [{ type: 'toggle', key: 'led', label: 'Licht' }], auto: [['led', true, 500]] },
+        { id: 'dach', at: [65, 14], zoom: [60, 16, 1.9], kicker: 'Flachdach', title: 'Flachdach mit Folie, 2 % Gefälle', text: 'EPDM-Folie, Attika aus Alu in Anthrazit, Entwässerung an der Hauswand. Lassen Sie es regnen.',
+          options: [{ type: 'toggle', key: 'rain', label: 'Regen' }], auto: [['rain', true, 500]],
+          callouts: [{ at: [72, 15], to: [80, 8], text: 'Attika Alu anthrazit' }] }
+      ]
     }
   ];
 
@@ -474,11 +686,26 @@
     this.stage.addEventListener('click', function (e) { if (e.target === self.img && self.open) self.close(); });
     addEventListener('keydown', function (e) { if (e.key === 'Escape' && self.open && self.root.closest('.lb.on, body')) self.close(); });
     if (opts.tour !== false && !REDUCED) this.setupTour();
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (e) { try { if (e.isIntersecting) self.svg.unpauseAnimations(); else self.svg.pauseAnimations(); } catch (x) { } });
+      }, { threshold: 0 }).observe(this.stage);
+    }
   }
 
   /* Hilfen für Effekte */
   Stage.prototype.p = function (pt) { return { x: pt[0] * 10, y: pt[1] * this.H / 100 }; };
-  Stage.prototype.g = function (cls) { return sv('g', { class: cls, style: 'transition:opacity .6s', opacity: 0 }, this.svg); };
+  Stage.prototype.g = function (cls) {
+    var g = sv('g', { class: cls, style: 'transition:opacity .6s', opacity: 0 }, this.svg), self = this;
+    g.style.display = 'none';
+    /* opacity über diese Hilfe setzen: 0 = nach der Blende ausblenden und Animationen anhalten */
+    Object.defineProperty(g, 'vis', { set: function (on) {
+      clearTimeout(g._hid);
+      if (on) { g.style.display = ''; requestAnimationFrame(function () { g.style.opacity = 1; }); }
+      else { g.style.opacity = 0; g._hid = setTimeout(function () { g.style.display = 'none'; }, 700); }
+    } });
+    return g;
+  };
   Stage.prototype.uid = function (pre) { return 'fx' + pre + (++UID); };
   Stage.prototype.path = function (poly, holes) {
     var self = this; function one(pl) { return pl.map(function (pt, i) { var p = self.p(pt); return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ') + ' Z'; }
@@ -702,11 +929,11 @@
     /* Galerie: erstes Foto mit Szene wird groß und anklickbar */
     var photos = $('.photos');
     if (photos && !$('[data-fotoshow]')) {
-      var figs = $$('figure', photos), first = null;
+      var figs = $$('figure', photos), first = null, best = -1;
       figs.forEach(function (f) {
         var im = $('img', f); if (!im) return;
-        var src = im.getAttribute('src');
-        if (sceneFor(src)) { f.classList.add('fx-fig'); if (!first) first = src; }
+        var src = im.getAttribute('src'), sc = sceneFor(src);
+        if (sc) { f.classList.add('fx-fig'); var pr = sc.priority == null ? 2 : sc.priority; if (pr > best) { best = pr; first = src; } }
       });
       if (first) photos.parentNode.insertBefore(featureBlock(first), photos);
     }
