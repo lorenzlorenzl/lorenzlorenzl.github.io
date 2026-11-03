@@ -99,7 +99,7 @@
     var blocks = $$('section, .sr, footer');
     blocks.forEach(function (sec, i) {
       var type = types[i % types.length];
-      var targets = $$('.wrap > h2, .wrap > .lead, .wrap > .kicker2, .grid > .card, .photos figure, .about > *, .why > div, .rc-grid > *, .tm-grid > *, .ablauf li, .sr-tabs, .sr-body', sec);
+      var targets = $$('.wrap > h2, .wrap > .lead, .wrap > .kicker2, .wrap > .fx-feature, .wrap > [data-fotoshow], .grid > .card, .photos figure, .about > *, .why > div, .rc-grid > *, .tm-grid > *, .ablauf li, .sr-tabs, .sr-body', sec);
       if (sec.tagName === 'FOOTER') targets = [sec.firstElementChild];
       targets.forEach(function (t, k) { if (!t || t.classList.contains('rv')) return; t.classList.add('rv', 'rv-' + (t.matches('.grid > .card, .photos figure, .why > div, .ablauf li') ? type : 'up')); t.style.setProperty('--i', k % 8); });
     });
@@ -171,8 +171,10 @@
     var lb = el('div', 'lb', '<button class="lb-x" aria-label="Schließen">×</button><button class="lb-p" aria-label="Zurück">‹</button><button class="lb-n" aria-label="Weiter">›</button><img alt=""><figcaption></figcaption><div class="lb-c"></div>');
     document.body.appendChild(lb);
     var img = $('img', lb), cap = $('figcaption', lb), cnt = $('.lb-c', lb), i = 0;
-    function show(k) { i = (k + figs.length) % figs.length; var f = figs[i], im = $('img', f); img.src = im.currentSrc || im.src; img.alt = im.alt; cap.textContent = ($('figcaption', f) || {}).textContent || ''; cnt.textContent = (i + 1) + ' / ' + figs.length; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
-    function hide() { lb.classList.remove('on'); document.body.style.overflow = ''; }
+    var fxbox = el('div', 'lb-fx'); fxbox.hidden = true; lb.insertBefore(fxbox, img); var fxStage = null;
+    function clearFx() { if (fxStage) { fxStage.destroy(); fxStage = null; } fxbox.hidden = true; img.hidden = false; }
+    function show(k) { i = (k + figs.length) % figs.length; var f = figs[i], im = $('img', f); clearFx(); var src = im.getAttribute('src'); if (window.FotoShow && FotoShow.sceneFor(src)) { img.hidden = true; fxbox.hidden = false; fxbox.style.setProperty('--ar', FotoShow.sceneFor(src).ar); fxStage = FotoShow.mount(fxbox, src, { lightbox: true, tour: false }); } img.src = im.currentSrc || im.src; img.alt = im.alt; cap.textContent = ($('figcaption', f) || {}).textContent || ''; cnt.textContent = (i + 1) + ' / ' + figs.length; lb.classList.add('on'); document.body.style.overflow = 'hidden'; }
+    function hide() { lb.classList.remove('on'); document.body.style.overflow = ''; setTimeout(clearFx, 350); }
     figs.forEach(function (f, k) { f.addEventListener('click', function () { show(k); }); });
     $('.lb-x', lb).addEventListener('click', hide); $('.lb-p', lb).addEventListener('click', function () { show(i - 1); }); $('.lb-n', lb).addEventListener('click', function () { show(i + 1); });
     lb.addEventListener('click', function (e) { if (e.target === lb) hide(); });
