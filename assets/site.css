@@ -358,3 +358,19 @@ footer .credit { display: block; margin-top: 10px; font-size: .85rem; color: var
 .fx-car.in{transform:none;opacity:1}
 .fx-car .wheel{transform-box:fill-box;transform-origin:center}
 .fx-car.in .wheel{animation:fxspin .45s linear 5}
+
+/* ---------- Hero: Hintergrundfoto anklickbar ---------- */
+.fx-hero-marks{position:absolute;inset:0;z-index:2;pointer-events:none;--z:1}
+.fx-hero-marks .fx-mark{transition:none}
+.fx-hero-marks .fx-mark[hidden]{display:none}
+.fx-hero-marks .fx-mark span{opacity:.92;background:rgba(11,18,32,.62);font-weight:700}
+.fx-hero-marks .fx-mark:hover span{background:rgba(11,18,32,.9)}
+.fx-hero-cta{position:absolute;right:0;bottom:-46px;z-index:2;display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.4);color:#fff;padding:9px 15px;border-radius:999px;font:inherit;font-weight:700;font-size:.85rem;cursor:pointer;backdrop-filter:blur(8px);transition:background .25s}
+.fx-hero-cta:hover{background:rgba(255,255,255,.26)}
+.fx-hero-cta i{width:9px;height:9px;border-radius:50%;background:#fff;animation:fxblink 1.6s infinite}
+.fx-ov figcaption{max-width:900px}
+@media (max-width:720px){
+  .fx-hero-marks{display:none}
+  .fx-hero-cta{position:static;margin-top:18px}
+}
+.fx-hero-marks .fx-mark-r span{left:auto;right:-6px;transform:translate(0,-100%)}

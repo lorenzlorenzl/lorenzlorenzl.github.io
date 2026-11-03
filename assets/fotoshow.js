@@ -205,7 +205,7 @@
   /* Sicherungsreihen: aus = rot */
   FX.leds = function (st, c) {
     var items = c.rows.map(function (row) {
-      var r = row.rect, g = st.g('fx-row');
+      var r = row.rect, g = st.g('fx-row'); g.vis = true;
       var a = st.p([r[0], r[1]]), b = st.p([r[0] + r[2], r[1] + r[3]]);
       var cover = sv('rect', { x: a.x, y: a.y, width: b.x - a.x, height: b.y - a.y, rx: 4, fill: '#d33', opacity: 0, style: 'transition:opacity .4s' }, g);
       var led = sv('circle', { cx: b.x + 9, cy: (a.y + b.y) / 2, r: 4.5, fill: '#2ecc71', stroke: '#fff', 'stroke-width': 1.2 }, g);
@@ -646,6 +646,159 @@
           options: [{ type: 'toggle', key: 'rain', label: 'Regen' }], auto: [['rain', true, 500]],
           callouts: [{ at: [72, 15], to: [80, 8], text: 'Attika Alu anthrazit' }] }
       ]
+    },
+    /* ---------- Hero-Fotos (1344 × 752): werden über die Lichtbox geöffnet ---------- */
+    {
+      id: 'hero-technik', test: /(installateur\/hero\.jpg|musterbetrieb\/img\/hero\.jpg)(\?|$)/, ar: 1344 / 752, priority: 0,
+      caption: 'Heizraum: Wärmepumpe, Hydraulik, Speicher. Tippen Sie auf die Punkte.',
+      initial: { run: false, temp: 35, night: false, ww: 55, check: false },
+      effects: [
+        ['glow', { key: 'run', at: [60.6, 8.5], rx: 3, ry: 5.5, color: '#9fe0ff', max: .9 }],
+        ['rings', { key: 'run', at: [70, 40], n: 3, r: 150, color: '#fff' }],
+        ['wires', { key: 'run', color: '#ff9a4a', lines: [[[50.3, 1], [50.3, 73]]] }],
+        ['wires', { key: 'run', color: '#6fc8ff', lines: [[[52.8, 1], [52.8, 73]]] }],
+        ['fill', { key: 'ww', poly: [[89.2, 0], [100, 0], [100, 98], [89.2, 98]], top: 2, bottom: 97, colors: ['#ffe0c0', '#ffb070'] }],
+        ['night', { key: 'night', poly: [[10.5, 0], [30.5, 0], [30.5, 19.5], [10.5, 19.5]], moon: [.7, .35] }],
+        ['sticker', { key: 'check', rect: [7, 33, 7.5], html: '<b>Wartung</b><span>Geprüft 03/2026</span><span>Vordruck 1,5 bar</span><span>Nächste 03/2027</span>' }],
+        ['link', { key: 'night', on: { run: true }, delay: 700 }]
+      ],
+      hotspots: [
+        { id: 'waermepumpe', at: [66, 30], zoom: [66, 34, 1.6], kicker: 'Wärmepumpe', title: 'Innengerät, flüsterleise', text: 'Holt Wärme aus der Luft, auch bei minus 15 Grad. Starten Sie, das Display leuchtet und die Rohre werden warm.',
+          options: [{ type: 'toggle', key: 'run', label: 'Anlage läuft' }, { type: 'range', key: 'temp', label: 'Vorlauf', min: 28, max: 55, unit: ' °C' }], auto: [['run', true, 500]],
+          callouts: [{ at: [61, 9], to: [74, 12], text: 'Display: Status und Verbrauch' }],
+          info: function (s) { return s.run ? 'Vorlauf ' + s.temp + ' °C, ca. ' + (s.temp <= 35 ? '4,5' : s.temp <= 45 ? '3,6' : '2,9') + ' kWh Wärme je kWh Strom' : 'Bereit'; } },
+        { id: 'rohre', at: [51.5, 50], zoom: [52, 42, 2], kicker: 'Hydraulik', title: 'Vor- und Rücklauf, gedämmt', text: 'Warm hinaus, kühler zurück. Jede Leitung isoliert, damit die Wärme im Haus bleibt und nicht im Keller.',
+          options: [{ type: 'toggle', key: 'run', label: 'Anlage läuft' }], auto: [['run', true, 400]],
+          callouts: [{ at: [50.3, 30], to: [40, 24], text: 'Vorlauf, 35 °C' }, { at: [52.8, 58], to: [62, 64], text: 'Rücklauf, 30 °C' }] },
+        { id: 'gefaess', at: [10.5, 36], zoom: [14, 40, 2], kicker: 'Wartung', title: 'Ausdehnungsgefäß und Jahresservice', text: 'Fängt die Ausdehnung des Heizwassers ab. Beim Jahresservice prüfen wir Vordruck, Filter und Einstellungen.',
+          options: [{ type: 'toggle', key: 'check', label: 'Wartungsnachweis' }], auto: [['check', true, 500]] },
+        { id: 'fenster', at: [20, 9], zoom: [22, 14, 1.9], kicker: 'Abend', title: 'Läuft auch nachts, ohne dass Sie es hören', text: 'Abends springt die Anlage an, wenn das Haus Wärme braucht. Im Keller hört man sie kaum, draußen gar nicht.',
+          options: [{ type: 'toggle', key: 'night', label: 'Abend' }], auto: [['night', true, 500]] },
+        { id: 'speicher', at: [94, 45], zoom: [88, 45, 1.6], kicker: 'Warmwasser', title: 'Warmwasserspeicher, 300 Liter', text: 'Reicht für zwei volle Bäder hintereinander. Schieben Sie den Füllstand, so viel warmes Wasser ist gerade da.',
+          options: [{ type: 'range', key: 'ww', label: 'Warmwasser', min: 0, max: 100, unit: ' %' }], auto: [['ww', 90, 500]],
+          info: function (s) { return Math.round(s.ww * 3) + ' Liter warm, reicht für ' + Math.max(1, Math.round(s.ww / 40)) + (Math.round(s.ww / 40) > 1 ? ' Vollbäder' : ' Vollbad'); } }
+      ]
+    },
+    {
+      id: 'hero-almtal', test: /drack-installationen\/img\/hero\.jpg(\?|$)/, ar: 1344 / 752, priority: 0,
+      caption: 'Unterwegs im Almtal: Heizung, Notdienst, Werkstattwagen. Tippen Sie auf die Punkte.',
+      initial: { heiz: false, night: false, rain: false, decal: false },
+      effects: [
+        ['smoke', { key: 'heiz', at: [93.2, 5] }],
+        ['night', { key: 'night', poly: [[0, 0], [82, 0], [82, 4], [59, 38], [55, 40], [50, 42], [46, 43], [41, 40], [36, 39], [22, 29], [0, 24]], moon: [.3, .25] }],
+        ['glow', { key: 'night', at: [76, 52], rx: 7, ry: 8, color: '#ffe2b0', max: .95 }],
+        ['glow', { key: 'night', at: [70, 53], rx: 5, ry: 4.5, color: '#ffd9a0', max: .6 }],
+        ['glow', { key: 'night', at: [88.5, 54], rx: 5, ry: 4.5, color: '#ffd9a0', max: .6 }],
+        ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 70, len: 26, slant: -3, mist: true }],
+        ['sticker', { key: 'decal', rect: [2, 46, 8], html: '<b>Notdienst 24 h</b><span>07615 / 30235</span><span>Heizung · Sanitär</span>' }],
+        ['link', { key: 'night', on: { heiz: true }, delay: 600 }]
+      ],
+      hotspots: [
+        { id: 'kamin', at: [93.3, 7], zoom: [86, 14, 1.9], kicker: 'Heizung', title: 'Pellets oder Wärmepumpe', text: 'Raus aus dem Öl: Pelletskessel oder Wärmepumpe, mit Förderung vom Land. Schalten Sie die Heizung ein.',
+          options: [{ type: 'toggle', key: 'heiz', label: 'Heizung läuft' }], auto: [['heiz', true, 400]],
+          callouts: [{ at: [90, 14], to: [78, 10], text: 'Pellets: 94 % Wirkungsgrad' }] },
+        { id: 'haus', at: [77, 53], zoom: [78, 52, 1.8], kicker: 'Notdienst', title: 'Rund um die Uhr erreichbar', text: 'Heizung kalt um 22 Uhr? Anrufen, wir kommen. Machen Sie es Abend, das Licht geht an.',
+          options: [{ type: 'toggle', key: 'night', label: 'Abend' }], auto: [['night', true, 500]],
+          callouts: [{ at: [76, 50], to: [66, 44], text: 'Außenlicht mit Bewegungsmelder' }] },
+        { id: 'bus', at: [19, 45], zoom: [22, 48, 1.6], kicker: 'Werkstattwagen', title: 'Ersatzteile an Bord', text: 'Für die meisten Reparaturen haben wir das Teil schon im Wagen. Einmal kommen, fertig.',
+          options: [{ type: 'toggle', key: 'decal', label: 'Beschriftung' }], auto: [['decal', true, 500]],
+          callouts: [{ at: [16, 44], to: [26, 36], text: 'Pumpen, Ventile, Dichtungen' }] },
+        { id: 'wetter', at: [55, 12], zoom: [52, 16, 1.5], kicker: 'Wetter', title: 'Auch bei Sauwetter', text: 'Rohrbruch bei Regen, Heizung aus im Schnee. Wir fahren trotzdem. Lassen Sie es regnen.',
+          options: [{ type: 'toggle', key: 'rain', label: 'Regen' }], auto: [['rain', true, 500]] }
+      ]
+    },
+    {
+      id: 'hero-verteiler', test: /elektriker\/hero\.jpg(\?|$)/, ar: 1344 / 752, priority: 0,
+      caption: 'Neuer Verteiler im Altbau: Sicherungen, FI, Verdrahtung. Tippen Sie auf die Punkte.',
+      initial: { k: true, b: true, w: true, g: true, fi: 'ok', flow: false, night: false, licht: false },
+      effects: [
+        ['leds', { tripKey: 'fi', rows: [{ key: 'k', rect: [64.5, 22.5, 9.5, 4.2] }, { key: 'b', rect: [68.5, 33, 5.5, 4.2] }, { key: 'w', rect: [68.5, 48, 5.5, 4.2] }, { key: 'g', rect: [64.5, 64.5, 9.5, 5] }] }],
+        ['wires', { key: 'flow', color: '#4fe3ff', lines: [[[76.5, 1], [76.5, 92]], [[64.5, 2], [64.5, 20]], [[70, 2], [70, 21]], [[78.5, 1], [78.5, 90]]] }],
+        ['night', { key: 'night', poly: [[7.5, 27.5], [22.5, 27.5], [22.5, 60.5], [7.5, 60.5]], moon: [.6, .3] }],
+        ['glow', { key: 'licht', at: [16, 72], rx: 16, ry: 8, color: '#ffe2b0', max: .8 }],
+        ['link', { key: 'night', on: { licht: true }, delay: 900 }]
+      ],
+      hotspots: [
+        { id: 'sicherungen', at: [70, 25], zoom: [70, 38, 1.8], kicker: 'Verteiler', title: 'Sicherungen nach Räumen sortiert', text: 'Jede Reihe ein Bereich. Schalten Sie eine ab, sie wird rot. So finden Sie auch ohne uns die richtige Sicherung.',
+          options: [{ type: 'toggle', key: 'k', label: 'Küche' }, { type: 'toggle', key: 'b', label: 'Bad' }, { type: 'toggle', key: 'w', label: 'Wohnen' }, { type: 'toggle', key: 'g', label: 'Garage, Außen' }], auto: [['b', false, 600], ['b', true, 1900]],
+          callouts: [{ at: [74, 24], to: [84, 16], text: '16 A, Charakteristik B' }] },
+        { id: 'fi', at: [67, 66], zoom: [68, 62, 2.2], kicker: 'Personenschutz', title: 'FI-Schutzschalter, 30 mA', text: 'Schaltet in 30 Millisekunden ab, wenn Strom den falschen Weg nimmt. Testen Sie ihn.',
+          options: [{ type: 'buttons', label: 'Prüftaste', values: [{ label: 'FI-Test auslösen', set: function () { return { fi: 'trip' }; } }, { label: 'Wieder einschalten', set: function () { return { fi: 'ok' }; } }] }], auto: [['fi', 'trip', 700], ['fi', 'ok', 2300]],
+          info: function (s) { return s.fi === 'trip' ? 'Ausgelöst, alles stromlos' : 'Bereit, Schutz aktiv'; } },
+        { id: 'kabel', at: [77, 50], zoom: [76, 46, 2], kicker: 'Verdrahtung', title: 'Sauber verlegt, jede Ader beschriftet', text: 'Gelb-grün ist der Schutzleiter, blau der Neutralleiter, jede Klemme hat ihre Nummer. Zeigen Sie den Stromfluss.',
+          options: [{ type: 'toggle', key: 'flow', label: 'Stromfluss zeigen' }], auto: [['flow', true, 500]],
+          callouts: [{ at: [78, 40], to: [88, 34], text: 'Klemmen nummeriert, Plan als PDF' }] },
+        { id: 'smart', at: [15, 44], zoom: [18, 46, 1.7], kicker: 'Abend', title: 'Licht per App oder Schalter', text: 'Abends Licht an, bevor Sie heimkommen. Oder ganz klassisch am Schalter. Beides geht.',
+          options: [{ type: 'toggle', key: 'night', label: 'Abend' }, { type: 'toggle', key: 'licht', label: 'Licht an' }], auto: [['night', true, 400], ['licht', true, 1100]] }
+      ]
+    },
+    {
+      id: 'hero-altbau', test: /maler\/hero\.jpg(\?|$)/, ar: 1344 / 752, priority: 0,
+      caption: 'Altbauwohnung: Wand, Heizkörper, Parkett. Tippen Sie auf die Punkte, die Farben wechseln im Foto.',
+      initial: { wall: 'weiss', rad: 'weiss', boden: 'natur', night: false },
+      effects: [
+        ['tint', { key: 'wall', poly: [[48, 4], [84, 4], [84, 75], [48, 75]], holes: [[[56, 20], [60, 20], [61, 25], [63.5, 27], [63, 40], [62.5, 60], [62.5, 74.5], [55.5, 74.5], [55.5, 45], [55, 30]], [[64, 24], [66.5, 11.5], [70.5, 12.5], [66, 27]]], values: [['weiss', 'Weiß', null], ['creme', 'Creme', '#f0e3c9', 'multiply', .9], ['salbei', 'Salbei', '#c3cdb4', 'multiply', .9], ['terrakotta', 'Terrakotta', '#d8a083', 'multiply', .9], ['blau', 'Taubenblau', '#aabbd0', 'multiply', .9], ['greige', 'Greige', '#d4cdc2', 'multiply', .9]] }],
+        ['tint', { key: 'rad', poly: [[0.8, 60.5], [17, 60.5], [17, 77.5], [0.8, 77.5]], holes: [[[32.8, 56.5], [39.5, 56.5], [39.5, 68.5], [32.8, 68.5]], [[92.6, 50.5], [96.8, 50.5], [96.8, 57.5], [92.6, 57.5]]], values: [['weiss', 'Weiß', null], ['anthrazit', 'Anthrazit', '#3a3d42', 'multiply', .9], ['silber', 'Silber', '#b9bcc2', 'multiply', .9], ['schwarz', 'Schwarz matt', '#222', 'multiply', .9]] }],
+        ['tint', { key: 'boden', poly: [[0, 78], [32, 78], [33, 80], [40, 84], [46, 93], [38, 100], [0, 100]], holes: [[[85.5, 64], [100, 62], [100, 100], [86, 100]]], values: [['natur', 'Eiche natur', null], ['dunkel', 'Dunkel geölt', '#6b4a2e', 'multiply', .75], ['weiss', 'Weiß geölt', '#efe6d8', 'screen', .7], ['grau', 'Grau geölt', '#8d8a85', 'color', .9]] }],
+        ['glow', { key: 'night', at: [62, 40], rx: 30, ry: 26, color: '#ffe3b0', max: .3 }],
+        ['night', { key: 'night', poly: [[0, 0], [18, 0], [18, 57], [0, 57]], moon: [.6, .3] }]
+      ],
+      hotspots: [
+        { id: 'wand', at: [78, 40], zoom: [70, 40, 1.4], kicker: 'Wandfarbe', title: 'Farbe wählen, die Wand zeigt sie', text: 'Dispersionsfarbe, zweimal gestrichen, Kanten mit Band geschnitten. Tippen Sie durch die Töne.',
+          options: [{ type: 'swatch', key: 'wall', label: 'Farbton', values: [['weiss', 'Weiß', '#f4f3ef'], ['creme', 'Creme', '#f0e3c9'], ['salbei', 'Salbei', '#c3cdb4'], ['terrakotta', 'Terrakotta', '#d8a083'], ['blau', 'Taubenblau', '#aabbd0'], ['greige', 'Greige', '#d4cdc2']] }],
+          auto: [['wall', 'salbei', 600], ['wall', 'terrakotta', 1900], ['wall', 'weiss', 3200]] },
+        { id: 'heizkoerper', at: [36, 62], zoom: [30, 60, 2], kicker: 'Heizkörper', title: 'Heizkörper lackieren statt tauschen', text: 'Geschliffen, grundiert, mit Heizkörperlack gespritzt. Hält die Hitze aus und vergilbt nicht.',
+          options: [{ type: 'swatch', key: 'rad', label: 'Farbe', values: [['weiss', 'Weiß', '#f4f3ef'], ['anthrazit', 'Anthrazit', '#3a3d42'], ['silber', 'Silber', '#b9bcc2'], ['schwarz', 'Schwarz matt', '#222']] }],
+          auto: [['rad', 'anthrazit', 600], ['rad', 'silber', 1900], ['rad', 'weiss', 3200]] },
+        { id: 'boden', at: [15, 88], zoom: [22, 84, 1.8], kicker: 'Parkett', title: 'Parkett schleifen und ölen', text: 'Der alte Boden bleibt, wird geschliffen und geölt. Natur, dunkel oder weiß gekalkt.',
+          options: [{ type: 'swatch', key: 'boden', label: 'Oberfläche', values: [['natur', 'Eiche natur', '#d2a874'], ['dunkel', 'Dunkel geölt', '#6b4a2e'], ['weiss', 'Weiß geölt', '#efe6d8'], ['grau', 'Grau geölt', '#8d8a85']] }],
+          auto: [['boden', 'dunkel', 600], ['boden', 'weiss', 1900], ['boden', 'natur', 3200]] },
+        { id: 'abend', at: [9, 25], zoom: [14, 30, 1.7], kicker: 'Abend', title: 'Farbe bei Kunstlicht', text: 'Dieselbe Wand wirkt abends wärmer. Wir beraten mit Musterflächen, bei Tag und bei Licht.',
+          options: [{ type: 'toggle', key: 'night', label: 'Abend' }], auto: [['night', true, 500]] }
+      ]
+    },
+    {
+      id: 'hero-werkstatt', test: /tischler\/hero\.jpg(\?|$)/, ar: 1344 / 752, priority: 0,
+      caption: 'In der Werkstatt: Massivholz, Handwerkzeug, Abendlicht. Tippen Sie auf die Punkte.',
+      initial: { holz: 'natur', night: false },
+      effects: [
+        ['tint', { key: 'holz', poly: [[35, 66], [44, 62], [64, 61.5], [86, 62], [88, 72], [82, 87], [60, 91], [35, 74]], values: [['natur', 'Eiche natur', null], ['geoelt', 'Geölt', '#c48a4a', 'multiply', .8], ['rauch', 'Räuchereiche', '#5a3a24', 'multiply', .8], ['weiss', 'Weiß geölt', '#f0e6d6', 'screen', .75], ['schwarz', 'Schwarz', '#2a2d31', 'multiply', .85]] }],
+        ['night', { key: 'night', poly: [[0, 0], [10, 0], [10, 44], [0, 44]], moon: [.5, .3] }],
+        ['glow', { key: 'night', at: [60, 50], rx: 32, ry: 22, color: '#ffd9a0', max: .35 }]
+      ],
+      hotspots: [
+        { id: 'holz', at: [75, 73], zoom: [68, 70, 1.5], kicker: 'Massivholz', title: 'Eiche, von Hand gehobelt', text: 'Jedes Möbel aus dem Stamm, geölt statt lackiert. Tippen Sie durch die Oberflächen.',
+          options: [{ type: 'swatch', key: 'holz', label: 'Oberfläche', values: [['natur', 'Eiche natur', '#d9b887'], ['geoelt', 'Geölt', '#c48a4a'], ['rauch', 'Räuchereiche', '#5a3a24'], ['weiss', 'Weiß geölt', '#f0e6d6'], ['schwarz', 'Schwarz', '#2a2d31']] }],
+          auto: [['holz', 'geoelt', 600], ['holz', 'rauch', 1900], ['holz', 'natur', 3200]] },
+        { id: 'werkzeug', at: [88, 18], zoom: [85, 20, 1.6], kicker: 'Werkstatt', title: 'Werkzeug, das älter ist als wir', text: 'Stemmeisen und Hobel, von Hand geschärft. Weil die Maschine das Feine nicht kann.',
+          callouts: [{ at: [82, 12], to: [72, 6], text: 'Stemmeisen, handgeschärft' }, { at: [94, 42], to: [84, 52], text: 'Hobel, Buche' }] },
+        { id: 'hobel', at: [53, 47], zoom: [55, 50, 2], kicker: 'Handarbeit', title: 'Rauhbank, Span für Span', text: 'Der Hobel nimmt einen Zehntelmillimeter. Dafür ist die Fläche glatt wie Glas.',
+          callouts: [{ at: [58, 56], to: [68, 48], text: 'Späne: 0,1 mm dünn' }] },
+        { id: 'fenster', at: [5, 18], zoom: [14, 25, 1.7], kicker: 'Abend', title: 'Abends in der Werkstatt', text: 'Wenn es ruhig wird, entstehen die besten Stücke. Machen Sie es Abend.',
+          options: [{ type: 'toggle', key: 'night', label: 'Abend' }], auto: [['night', true, 500]] }
+      ]
+    },
+    {
+      id: 'hero-dach', test: /dach\/hero\.jpg(\?|$)/, ar: 1344 / 752, priority: 0,
+      caption: 'Neueindeckung: Ziegel, Unterbau, Gerüst, Wetter. Tippen Sie auf die Punkte.',
+      initial: { ziegel: 'rot', rain: false, night: false },
+      effects: [
+        ['tint', { key: 'ziegel', poly: [[33, 43], [46, 40], [60, 43], [83, 64], [83, 96], [60, 98], [39, 78]], holes: [[[48, 43.5], [57, 43.5], [57, 66], [48, 66]], [[11, 28], [25, 27], [25, 44], [11, 44]]], values: [['rot', 'Naturrot', null], ['anthrazit', 'Anthrazit', '#3b3f44', 'multiply', .85], ['braun', 'Dunkelbraun', '#5a3a2a', 'multiply', .85], ['engobe', 'Rot engobiert', '#b8412a', 'multiply', .6]] }],
+        ['rain', { key: 'rain', poly: [[0, 0], [100, 0], [100, 100], [0, 100]], n: 70, len: 26, slant: -3, mist: true }],
+        ['wires', { key: 'rain', color: '#bfe8ff', lines: [[[33, 76], [55, 86], [83, 96]]] }],
+        ['night', { key: 'night', poly: [[0, 0], [100, 0], [100, 20], [72, 24], [50, 22], [30, 24], [12, 28], [0, 22]], moon: [.75, .3] }]
+      ],
+      hotspots: [
+        { id: 'ziegel', at: [68, 70], zoom: [65, 68, 1.5], kicker: 'Eindeckung', title: 'Tondachziegel, 30 Jahre Garantie', text: 'Naturrot, engobiert oder anthrazit. Tippen Sie durch, das Dach zeigt es.',
+          options: [{ type: 'swatch', key: 'ziegel', label: 'Ziegel', values: [['rot', 'Naturrot', '#c0603f'], ['anthrazit', 'Anthrazit', '#3b3f44'], ['braun', 'Dunkelbraun', '#5a3a2a'], ['engobe', 'Rot engobiert', '#b8412a']] }],
+          auto: [['ziegel', 'anthrazit', 600], ['ziegel', 'braun', 1900], ['ziegel', 'rot', 3200]] },
+        { id: 'lattung', at: [25, 48], zoom: [26, 46, 2], kicker: 'Unterbau', title: 'Lattung und Unterdeckbahn', text: 'Konterlattung, Unterdeckbahn winddicht verklebt, Lattung im Ziegelmaß. Das sieht nachher keiner, hält aber 50 Jahre.',
+          callouts: [{ at: [22, 42], to: [12, 34], text: 'Konterlattung 30 × 50 mm' }, { at: [30, 55], to: [40, 62], text: 'Unterdeckbahn, winddicht' }] },
+        { id: 'geruest', at: [78, 62], zoom: [75, 70, 1.6], kicker: 'Sicherheit', title: 'Gerüst und Absturzsicherung', text: 'Gerüst mit Fanglage, Dachschutzwand, alles geprüft. Ihr Haus und unsere Leute bleiben heil.',
+          callouts: [{ at: [85, 70], to: [92, 60], text: 'Dachfanggerüst, geprüft' }] },
+        { id: 'wetter', at: [70, 12], zoom: [60, 50, 1.3], kicker: 'Wetter', title: 'Regen? Das Dach führt ihn ab', text: 'Dachrinne, Kehlen und Anschlüsse aus Blech. Lassen Sie es regnen, das Wasser läuft in die Rinne.',
+          options: [{ type: 'toggle', key: 'rain', label: 'Regen' }, { type: 'toggle', key: 'night', label: 'Abend' }], auto: [['rain', true, 500]] }
+      ]
     }
   ];
 
@@ -921,6 +1074,7 @@
   }
 
   function init() {
+    initHero();
     /* Ausdrücklich gesetzte Blöcke */
     $$('[data-fotoshow]').forEach(function (n) {
       var src = n.getAttribute('data-src'); if (!src) return;
@@ -939,6 +1093,70 @@
     }
   }
 
-  window.FotoShow = { sceneFor: sceneFor, mount: mount, scenes: SCENES, stages: STAGES };
+  /* ---------------- Hero: Hintergrundfoto anklickbar ---------------- */
+  var OV = null, OVSTAGE = null;
+  function closeOverlay() {
+    if (!OV) return; OV.classList.remove('on'); document.body.style.overflow = '';
+    setTimeout(function () { if (OVSTAGE) { OVSTAGE.destroy(); OVSTAGE = null; } }, 350);
+  }
+  function openOverlay(src, hsId) {
+    var scene = sceneFor(src); if (!scene) return;
+    if (!OV) {
+      OV = el('div', 'lb fx-ov', '<button class="lb-x" aria-label="Schließen">×</button><div class="lb-fx"></div><figcaption></figcaption>');
+      document.body.appendChild(OV);
+      $('.lb-x', OV).addEventListener('click', closeOverlay);
+      OV.addEventListener('click', function (e) { if (e.target === OV) closeOverlay(); });
+      addEventListener('keydown', function (e) { if (e.key === 'Escape' && OV.classList.contains('on')) closeOverlay(); });
+    }
+    if (OVSTAGE) { OVSTAGE.destroy(); OVSTAGE = null; }
+    var box = $('.lb-fx', OV); box.innerHTML = ''; box.style.setProperty('--ar', scene.ar);
+    OVSTAGE = mount(box, src, { lightbox: true, tour: false });
+    $('figcaption', OV).textContent = scene.caption || '';
+    OV.classList.add('on'); document.body.style.overflow = 'hidden';
+    if (hsId && OVSTAGE) setTimeout(function () {
+      var hs = scene.hotspots.filter(function (h) { return h.id === hsId; })[0];
+      if (hs && OVSTAGE) OVSTAGE.openHotspot(hs);
+    }, 450);
+  }
+
+  function heroSetup(hero, src, scene) {
+    var marks = el('div', 'fx-hero-marks'); hero.appendChild(marks);
+    var items = scene.hotspots.map(function (hs) {
+      var b = el('button', 'fx-mark', '<i></i><span>' + esc(hs.title) + '</span>'); b.type = 'button'; b.setAttribute('aria-label', hs.title);
+      b.addEventListener('click', function () { openOverlay(src, hs.id); });
+      marks.appendChild(b); return { b: b, hs: hs };
+    });
+    var wrap = $('.wrap', hero) || hero;
+    var cta = el('button', 'fx-hero-cta', '<i></i>Foto erkunden'); cta.type = 'button';
+    cta.addEventListener('click', function () { openOverlay(src, null); });
+    wrap.appendChild(cta);
+    function layout() {
+      var w = hero.clientWidth, h = hero.clientHeight, ar = scene.ar;
+      var rw = Math.max(w, h * ar), rh = rw / ar, ox = (w - rw) / 2, oy = (h - rh) / 2;
+      var hr = hero.getBoundingClientRect(), right = 0;
+      $$('.wrap > *', hero).forEach(function (c) {
+        if (c === cta || c.classList.contains('scrollcue')) return;
+        var parts = c.children.length && /flex|grid/.test(getComputedStyle(c).display) ? $$(':scope > *', c) : [c];
+        parts.forEach(function (q) { var rg = document.createRange(); rg.selectNodeContents(q); var r = rg.getBoundingClientRect(); if (r.width) right = Math.max(right, r.right - hr.left); });
+      });
+      var wide = w > 720;
+      items.forEach(function (it) {
+        var x = ox + it.hs.at[0] / 100 * rw, y = oy + it.hs.at[1] / 100 * rh;
+        var ok = wide && x > Math.max(right + 40, w * .58) && x < w - 30 && y > 40 && y < h - 40;
+        it.b.hidden = !ok; it.b.style.left = x + 'px'; it.b.style.top = y + 'px'; it.b.classList.toggle('fx-mark-r', x > w - 190);
+      });
+    }
+    layout(); addEventListener('resize', layout); addEventListener('load', layout);
+    if (window.ResizeObserver) new ResizeObserver(layout).observe(hero);
+  }
+
+  function initHero() {
+    var hero = $('.hero'); if (!hero) return;
+    var bg = getComputedStyle(hero).backgroundImage || '', m = /url\(["']?([^"')]+)["']?\)/.exec(bg);
+    var src = m && m[1], scene = src && sceneFor(src);
+    if (scene) heroSetup(hero, src, scene);
+  }
+
+  window.FotoShow = { sceneFor: sceneFor, mount: mount, openOverlay: openOverlay, scenes: SCENES, stages: STAGES };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
